@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { evaluate, letterOf, lettersNeeded, maskName, MAX_MISSES } from './hangman';
-import { guessRow, movesShown, START_SHOWN, MAX_GUESSES } from './moveset';
+import { guessRow, learnLabel, movesShown, START_SHOWN, MAX_GUESSES } from './moveset';
 import { emptyStats, recordResult } from './stats';
-import movesets from '../data/movesets.json';
+import movesetsJson from '../data/movesets.json';
 import { byId } from '../data';
+import type { MovesetData } from './moveset';
+
+const movesets = movesetsJson as unknown as MovesetData;
 
 describe('hangman', () => {
   it('maps characters to guessable letters', () => {
@@ -47,9 +50,20 @@ describe('moveset', () => {
     expect(ids.length).toBeGreaterThan(1000);
     expect(ids.every((id) => byId.has(id))).toBe(true);
     for (const set of Object.values(movesets.sets)) {
-      expect(set.length).toBeGreaterThanOrEqual(3);
-      for (const m of set) expect(movesets.moves).toHaveProperty(m);
+      expect(set.moves.length).toBeGreaterThanOrEqual(3);
+      for (const [m, learn] of set.moves) {
+        expect(movesets.moves).toHaveProperty(m);
+        expect(['number', 'string']).toContain(typeof learn);
+      }
+      if (set.vg !== null) expect(movesets.games).toHaveProperty(String(set.vg));
     }
+  });
+  it('labels how a move is learned', () => {
+    expect(learnLabel(12)).toBe('Lv. 12');
+    expect(learnLabel(0)).toBe('Evolution');
+    expect(learnLabel('machine')).toBe('TM');
+    expect(learnLabel('egg')).toBe('Egg');
+    expect(learnLabel('some-method')).toBe('Some method');
   });
 });
 

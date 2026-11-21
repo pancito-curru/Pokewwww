@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import PokemonInput from '../../components/PokemonInput';
 import TypeBadge from '../../components/TypeBadge';
 import type { PokeType } from '../../data';
-import { guessRow, MAX_GUESSES, movesShown, START_SHOWN, type MovesetData } from '../../lib/moveset';
+import { guessRow, learnLabel, MAX_GUESSES, movesShown, START_SHOWN, type MovesetData } from '../../lib/moveset';
 import { useMovesetStore } from '../puzzle/stores';
 import { GiveUp, PuzzleHeader, PuzzleResult, UnlimitedOptions, WrongGuesses } from '../puzzle/Chrome';
 
@@ -16,7 +16,7 @@ export default function MovesetGame() {
   // The move data is ~120 kB, so it loads only when this game opens.
   const [data, setData] = useState<MovesetData | null>(null);
   useEffect(() => {
-    import('../../data/movesets.json').then((m) => setData(m.default as MovesetData));
+    import('../../data/movesets.json').then((m) => setData(m.default as unknown as MovesetData));
   }, []);
 
   if (!data) return <p className="py-10 text-center text-sm text-slate-500">Loading moves…</p>;
@@ -35,7 +35,8 @@ function Moveset({ data }: { data: MovesetData }) {
   const guessed = useMemo(() => new Set(round?.guesses), [round?.guesses]);
   if (!round) return null;
 
-  const moves = data.sets[round.targetId] ?? [];
+  const set = data.sets[round.targetId];
+  const moves = set?.moves ?? [];
   const over = round.status !== 'playing';
   const won = round.status === 'won';
   const misses = round.guesses.filter((g) => g !== round.targetId);
@@ -61,7 +62,7 @@ function Moveset({ data }: { data: MovesetData }) {
       <section className="mx-auto max-w-xl rounded-2xl bg-white p-4 shadow-lg dark:bg-slate-800 sm:p-6">
         <h2 className="mb-3 text-center font-pixel text-sm text-slate-500">Which Pokémon learns…</h2>
         <ol className="space-y-2">
-          {moves.map((slug, i) => {
+          {moves.map(([slug, learn], i) => {
             const m = data.moves[slug];
             const visible = i < shown;
             const cls = CLASS_LABEL[m.cls] ?? CLASS_LABEL.status;
@@ -78,6 +79,12 @@ function Moveset({ data }: { data: MovesetData }) {
                 {visible ? (
                   <>
                     <span className="flex-1 font-semibold">{m.name}</span>
+                    <span
+                      className="w-[4.5rem] shrink-0 rounded bg-slate-200 px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+                      title={typeof learn === 'number' ? (learn === 0 ? 'Learned when it evolves' : `Learned at level ${learn}`) : `Learned by ${learnLabel(learn)}`}
+                    >
+                      {learnLabel(learn)}
+                    </span>
                     <TypeBadge type={m.type as PokeType} />
                     <span className="hidden w-20 text-xs text-slate-500 sm:inline" title={cls.label}>
                       <span aria-hidden>{cls.icon}</span> {cls.label}
@@ -90,6 +97,10 @@ function Moveset({ data }: { data: MovesetData }) {
             );
           })}
         </ol>
+        {/* The game would hint at the Pokémon's era, so it's only named once the round is over. */}
+        {over && set?.vg != null && data.games[set.vg] && (
+          <p className="mt-3 text-center text-xs text-slate-500">Levels from Pokémon {data.games[set.vg]}</p>
+        )}
       </section>
 
       {!over && (
