@@ -12,7 +12,7 @@ const AMBIGUOUS_DELAY = 800;
 const TYPO_DELAY = 600;
 
 type Feedback =
-  | { kind: 'found'; id: number; at: number }
+  | { kind: 'found'; id: number; at: number; typo?: boolean }
   | { kind: 'already'; id: number; at: number }
   | { kind: 'outOfScope'; id: number; at: number }
   | { kind: 'close'; id: number; found: boolean; at: number };
@@ -33,20 +33,24 @@ export default function Play() {
   const scope = useMemo(() => new Set(game.scopeIds), [game.scopeIds]);
   const found = useMemo(() => new Set(game.found), [game.found]);
   const lastId = game.found.length ? game.found[game.found.length - 1] : null;
+  const easy = !!game.settings.easy;
 
   const accept = useCallback(
-    (id: number) => {
+    (id: number, typo = false) => {
       clearTimeout(pending.current);
       find(id);
       setInput('');
-      setFeedback({ kind: 'found', id, at: Date.now() });
+      setFeedback({ kind: 'found', id, at: Date.now(), typo });
     },
     [find],
   );
 
   const showNearMiss = (value: string) => {
     const m = findNearMiss(value, scope, found);
-    if (m) setFeedback({ kind: 'close', id: m.id, found: m.found, at: Date.now() });
+    if (!m) return;
+    // Easy mode: a one-mistake spelling of a Pokémon you haven't found counts.
+    if (easy && !m.found) accept(m.id, true);
+    else setFeedback({ kind: 'close', id: m.id, found: m.found, at: Date.now() });
   };
 
   const onChange = (value: string) => {
@@ -99,6 +103,11 @@ export default function Play() {
             <span className="text-base font-normal text-slate-500"> / {game.scopeIds.length}</span>
           </div>
           <Timer startedAt={game.startedAt} endsAt={game.endsAt} onExpire={onExpire} />
+          {easy && (
+            <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
+              Easy mode
+            </span>
+          )}
           <div className="ml-auto">
             {confirmGiveUp ? (
               <span className="flex items-center gap-2 text-sm">
@@ -172,6 +181,7 @@ function FeedbackLine({ feedback }: { feedback: Feedback | null }) {
     return (
       <span key={feedback.at} className="flex animate-pop items-center gap-1 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
         <Sprite id={p.id} scale={0.6} /> {p.name}!
+        {feedback.typo && <span className="font-normal text-slate-500 dark:text-slate-400">(spelling fixed)</span>}
       </span>
     );
   if (feedback.kind === 'close')

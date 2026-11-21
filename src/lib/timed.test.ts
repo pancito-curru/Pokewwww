@@ -80,6 +80,8 @@ describe('helpers', () => {
   it('scopeKey is order-independent', () => {
     expect(scopeKey([3, 1], 10)).toBe(scopeKey([1, 3], 10));
     expect(scopeKey([], null)).toBe('all|untimed');
+    expect(scopeKey([1], 5, true)).toBe('1|5|easy');
+    expect(scopeKey([1], 5, true)).not.toBe(scopeKey([1], 5));
   });
   it('formats clocks', () => {
     expect(formatClock(0)).toBe('0:00');

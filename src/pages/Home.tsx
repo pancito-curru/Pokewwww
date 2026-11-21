@@ -10,6 +10,8 @@ import { useTimedStore } from '../games/timed/store';
 import { useGuessStore } from '../games/guess/store';
 import { useWordleStore } from '../games/wordle/store';
 import { useCrossStore } from '../games/crossword/store';
+import { identifyStores } from '../games/identify/store';
+import type { IdentifyKind } from '../games/identify/kinds';
 
 const DAILY_LENGTHS = availableLengths(POKEDEX).map((l) => l.length);
 
@@ -19,10 +21,10 @@ export default function Home() {
       <section className="py-6 text-center">
         <h1 className="font-pixel text-2xl leading-relaxed sm:text-3xl">Pokémon Trivia</h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">
-          Four ways to test what you know about all {POKEDEX.length} Pokémon.
+          {MODES.length} ways to test what you know about all {POKEDEX.length} Pokémon.
         </p>
       </section>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {MODES.map((m) => (
           <Link
             key={m.path}
@@ -58,11 +60,12 @@ function TimedStatus() {
   const top = Object.entries(best).sort(([, a], [, b]) => b.found / b.total - a.found / a.total)[0];
   if (!top) return <>No games yet. How many can you name?</>;
   const [key, rec] = top;
-  const [gens, dur] = key.split('|');
+  const [gens, dur, easy] = key.split('|');
   return (
     <>
       Best: <strong>{rec.found}/{rec.total}</strong> · {gens === 'all' ? 'all gens' : `Gen ${gens}`} ·{' '}
       {dur === 'untimed' ? 'no limit' : `${dur} min`}
+      {easy ? ' · easy' : ''}
     </>
   );
 }
@@ -110,4 +113,23 @@ const STATUS: Record<string, () => ReactNode> = {
   '/guess': () => <GuessStatus />,
   '/wordle': () => <WordleStatus />,
   '/crossword': () => <CrossStatus />,
+  '/silhouette': () => <IdentifyStatus kind="silhouette" />,
+  '/cry': () => <IdentifyStatus kind="cry" />,
 };
+
+function IdentifyStatus({ kind }: { kind: IdentifyKind }) {
+  const useStore = identifyStores[kind];
+  const daily = useStore((s) => s.daily);
+  const streak = useStore((s) => s.dailyStats.streak);
+  const bestRun = useStore((s) => Math.max(0, ...Object.values(s.best).map((b) => b.correct)));
+  const today = daily?.key === todayKey() ? daily.item : null;
+  const extra = `${streak ? ` · ${streak}-day streak` : ''}${bestRun ? ` · best run ${bestRun}` : ''}`;
+  if (!today || (!today.result && !today.wrong.length)) return <>Pokémon of the day is waiting{extra}</>;
+  if (!today.result) return <Pending>Daily in progress · {3 - today.wrong.length} tries left</Pending>;
+  return (
+    <>
+      <Done>{today.result === 'correct' ? `Daily solved in ${today.wrong.length + 1}` : 'Daily done'}</Done>
+      {extra}
+    </>
+  );
+}

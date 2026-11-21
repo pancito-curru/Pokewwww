@@ -113,9 +113,9 @@ export function perGenStats(scopeIds: readonly number[], found: ReadonlySet<numb
 }
 
 /** Key for best scores: one record per generation set + duration combo. */
-export function scopeKey(generations: readonly number[], durationMin: number | null): string {
+export function scopeKey(generations: readonly number[], durationMin: number | null, easy = false): string {
   const gens = generations.length ? [...generations].sort((a, b) => a - b).join(',') : 'all';
-  return `${gens}|${durationMin ?? 'untimed'}`;
+  return `${gens}|${durationMin ?? 'untimed'}${easy ? '|easy' : ''}`;
 }
 
 export function formatClock(ms: number): string {

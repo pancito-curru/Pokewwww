@@ -9,6 +9,8 @@ export interface TimedSettings {
   /** Empty = all generations. */
   generations: number[];
   silhouettes: boolean;
+  /** Accept names with one mistake (a typo). Scores are kept separately. */
+  easy?: boolean;
 }
 
 export type EndReason = 'time' | 'gaveUp' | 'complete';
@@ -44,7 +46,7 @@ interface TimedState {
   toSetup: () => void;
 }
 
-const DEFAULT_SETTINGS: TimedSettings = { duration: 10, generations: [1], silhouettes: true };
+const DEFAULT_SETTINGS: TimedSettings = { duration: 10, generations: [1], silhouettes: true, easy: false };
 
 const emptyGame = (settings: TimedSettings): TimedGame => ({
   status: 'setup',
@@ -94,7 +96,7 @@ export const useTimedStore = create<TimedState>()(
         if (game.status !== 'playing') return;
         const endedAt = game.endsAt ? Math.min(Date.now(), game.endsAt) : Date.now();
         const ms = endedAt - game.startedAt;
-        const key = scopeKey(game.settings.generations, game.settings.duration);
+        const key = scopeKey(game.settings.generations, game.settings.duration, game.settings.easy);
         const prev = best[key];
         const score = game.found.length;
         const newBest = score > 0 && (!prev || score > prev.found || (score === prev.found && ms < prev.ms));

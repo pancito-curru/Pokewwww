@@ -1,13 +1,17 @@
 # Pokewwww
 
-A Pokémon trivia web app with four modes, all with a daily puzzle (the same for everyone) and an unlimited mode:
+A Pokémon trivia web app with six game modes:
 
 | Mode | Route | What you do |
 |---|---|---|
-| **Name 'Em All** | `#/timed` | Name as many Pokémon as you can before the timer runs out |
+| **Name 'Em All** | `#/timed` | Name as many Pokémon as you can before the timer runs out (optional easy mode accepts one-letter typos) |
 | **Who's That?** | `#/guess` | Guess a hidden Pokémon; each guess shows which of 9 attributes match |
 | **Pokédle** | `#/wordle` | Wordle with Pokémon names; pick a length from 4 to 11 letters |
 | **Pokécross** | `#/crossword` | Solve a generated crossword of Pokémon names |
+| **Silhouettes** | `#/silhouette` | Name a Pokémon from its shadow: Pokémon of the day (3 tries) or a timed run by region |
+| **Cries** | `#/cry` | Name a Pokémon from its cry: Pokémon of the day (3 tries) or a timed run by region |
+
+Who's That?, Pokédle and Pokécross also have a daily puzzle (the same for everyone) and an unlimited mode. There is also a contact page (`#/contact`).
 
 The original design is in [BLUEPRINT.md](BLUEPRINT.md).
 

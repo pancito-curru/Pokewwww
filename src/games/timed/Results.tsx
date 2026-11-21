@@ -19,7 +19,7 @@ export default function Results() {
   const total = game.scopeIds.length;
   const pct = total ? Math.round((game.found.length / total) * 100) : 0;
   const perMin = ms > 0 ? (game.found.length / (ms / 60_000)).toFixed(1) : '0';
-  const record = best[scopeKey(game.settings.generations, game.settings.duration)];
+  const record = best[scopeKey(game.settings.generations, game.settings.duration, game.settings.easy)];
 
   const shareText = () => {
     const gens = game.settings.generations.length ? `Gen ${game.settings.generations.join(', ')}` : 'All generations';
@@ -29,7 +29,7 @@ export default function Results() {
       return '🟩'.repeat(filled) + '⬜'.repeat(10 - filled);
     };
     return [
-      `Pokewwww Name 'Em All · ${gens} · ${timer}`,
+      `Pokewwww Name 'Em All · ${gens} · ${timer}${game.settings.easy ? ' · easy mode' : ''}`,
       `${game.found.length}/${total} (${pct}%) in ${formatClock(ms)}`,
       ...(stats.length > 1 ? stats.map((s) => `Gen ${s.gen} ${bar(s.found, s.total)} ${s.found}/${s.total}`) : []),
     ].join('\n');

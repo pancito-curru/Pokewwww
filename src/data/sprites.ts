@@ -9,3 +9,9 @@ export function spriteUrl(p: { id: number; slug: string | null }, shiny = false)
   if (p.slug) return `${SPRITE_BASE}/pokemon-gen8/${shiny ? 'shiny' : 'regular'}/${p.slug}.png`;
   return `${POKEAPI_SPRITES}/${shiny ? 'shiny/' : ''}${p.id}.png`;
 }
+
+/** Large official artwork (~475px), used for the silhouette game. Exists for all 1025. */
+export const artworkUrl = (id: number) => `${POKEAPI_SPRITES}/other/official-artwork/${id}.png`;
+
+/** The Pokémon's cry (Ogg Vorbis) from PokeAPI's cries repo. "latest" exists for all 1025. */
+export const cryUrl = (id: number) => `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`;

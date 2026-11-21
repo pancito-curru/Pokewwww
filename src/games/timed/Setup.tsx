@@ -2,13 +2,14 @@ import { getPool } from '../../data';
 import FilterPanel from '../../components/FilterPanel';
 import { formatClock, scopeKey } from '../../lib/timed';
 import { useTimedStore } from './store';
+import Switch from '../../components/Switch';
 
 const DURATIONS: (number | null)[] = [5, 10, 15, 30, null];
 
 export default function Setup() {
   const { settings, setSettings, start, best } = useTimedStore();
   const poolSize = getPool({ generations: settings.generations }).length;
-  const record = best[scopeKey(settings.generations, settings.duration)];
+  const record = best[scopeKey(settings.generations, settings.duration, settings.easy)];
 
   const opt = (on: boolean) =>
     `rounded-lg border px-4 py-2 text-sm font-semibold transition ${
@@ -25,6 +26,15 @@ export default function Setup() {
           Type Pokémon names as fast as you can. Correct names count as soon as you finish typing them.
         </p>
       </header>
+
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+        <Switch
+          checked={!!settings.easy}
+          onChange={(easy) => setSettings({ easy })}
+          label="Easy mode"
+          description="Names with one wrong, missing, extra or swapped letter still count (Charzard → Charizard). Easy-mode scores are kept separately."
+        />
+      </div>
 
       <div>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Timer</h2>

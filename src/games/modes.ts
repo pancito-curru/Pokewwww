@@ -31,4 +31,16 @@ export const MODES: GameMode[] = [
     blurb: 'Fill a crossword of Pokémon names using the clues.',
     sprites: [79, 143, 446],
   },
+  {
+    path: '/silhouette',
+    title: 'Silhouettes',
+    blurb: 'Name the Pokémon from its shadow: one a day, or as many as you can against the clock.',
+    sprites: [94, 92, 93],
+  },
+  {
+    path: '/cry',
+    title: 'Cries',
+    blurb: 'Name the Pokémon from its cry: one a day, or as many as you can against the clock.',
+    sprites: [39, 441, 295],
+  },
 ];
