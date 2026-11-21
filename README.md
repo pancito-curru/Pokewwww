@@ -1,4 +1,4 @@
-# Pokewwww
+# Pokewwwww
 
 A Pokémon trivia web app with eight game modes:
 

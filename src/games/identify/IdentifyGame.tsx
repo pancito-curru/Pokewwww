@@ -198,7 +198,7 @@ function Daily({ kind }: { kind: IdentifyKind }) {
           <div className="flex flex-wrap justify-center gap-2">
             <ShareButton
               text={() =>
-                `Pokewwww ${info.title} ${daily.key} · ${won ? item.wrong.length + 1 : 'X'}/${MAX_ATTEMPTS}\n${attemptEmoji(
+                `Pokewwwww ${info.title} ${daily.key} · ${won ? item.wrong.length + 1 : 'X'}/${MAX_ATTEMPTS}\n${attemptEmoji(
                   item.wrong.length,
                   won,
                 )}`
@@ -396,7 +396,7 @@ function RunResults({ kind }: { kind: IdentifyKind }) {
           </button>
           <ShareButton
             text={() =>
-              `Pokewwww ${info.title} · ${gens} · ${run.minutes} min\n✅ ${summary.correct} correct${
+              `Pokewwwww ${info.title} · ${gens} · ${run.minutes} min\n✅ ${summary.correct} correct${
                 summary.missed + summary.skipped ? ` · ${summary.missed + summary.skipped} missed` : ''
               }`
             }

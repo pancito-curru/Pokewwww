@@ -14,7 +14,7 @@ export default function Layout() {
 
   useEffect(() => {
     const page = NAV.find((m) => m.path === pathname);
-    document.title = page ? `${page.title} · Pokewwww` : 'Pokewwww · Pokémon Trivia';
+    document.title = page ? `${page.title} · Pokewwwww` : 'Pokewwwww · Pokémon Trivia';
     window.scrollTo(0, 0);
   }, [pathname]);
 
@@ -22,7 +22,7 @@ export default function Layout() {
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4">
       <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-5">
         <Link to="/" className="font-pixel text-lg tracking-tight text-red-600 dark:text-red-400">
-          Pokewwww
+          Pokewwwww
         </Link>
         <nav aria-label="Main" className="-mx-1 flex flex-wrap items-center gap-1 text-sm">
           {MODES.map((m) => (
@@ -41,7 +41,7 @@ export default function Layout() {
       </main>
       <footer className="space-y-2 border-t border-slate-300 py-4 text-center text-xs text-slate-500 dark:border-slate-700">
         <p>
-          Pokewwww is a non-profit fan project. If you&apos;d like to support it or help out, you can do so on{' '}
+          Pokewwwww is a non-profit fan project. If you&apos;d like to support it or help out, you can do so on{' '}
           <a
             className="inline-flex items-center gap-1 font-semibold text-red-600 underline hover:text-red-700 dark:text-red-400"
             href="https://ko-fi.com/pancitocurru"

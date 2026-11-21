@@ -29,7 +29,7 @@ export default function Results() {
       return '🟩'.repeat(filled) + '⬜'.repeat(10 - filled);
     };
     return [
-      `Pokewwww Name 'Em All · ${gens} · ${timer}${game.settings.easy ? ' · easy mode' : ''}`,
+      `Pokewwwww Name 'Em All · ${gens} · ${timer}${game.settings.easy ? ' · easy mode' : ''}`,
       `${game.found.length}/${total} (${pct}%) in ${formatClock(ms)}`,
       ...(stats.length > 1 ? stats.map((s) => `Gen ${s.gen} ${bar(s.found, s.total)} ${s.found}/${s.total}`) : []),
     ].join('\n');

@@ -14,7 +14,7 @@ export default function ResultCard({ round }: { round: GuessRound }) {
 
   const text = () =>
     shareText({
-      title: `Pokewwww Who's That? ${round.mode === 'daily' ? round.key : '(unlimited)'}`,
+      title: `Pokewwwww Who's That? ${round.mode === 'daily' ? round.key : '(unlimited)'}`,
       guesses: round.guesses.map((id) => byId.get(id)!),
       target,
       won,

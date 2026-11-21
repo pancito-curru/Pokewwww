@@ -118,7 +118,7 @@ function Moveset({ data }: { data: MovesetData }) {
             daily={round.mode === 'daily'}
             onNext={() => newUnlimited(eligible)}
             shareText={() =>
-              `Pokewwww Moveset ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${
+              `Pokewwwww Moveset ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${
                 won ? round.guesses.length : 'X'
               }/${MAX_GUESSES}\n${guessRow(misses.length, won)}`
             }

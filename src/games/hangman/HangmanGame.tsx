@@ -115,7 +115,7 @@ export default function HangmanGame() {
             daily={round.mode === 'daily'}
             onNext={() => newUnlimited()}
             shareText={() =>
-              `Pokewwww Hangman ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${
+              `Pokewwwww Hangman ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${
                 won ? `${misses}/${MAX_MISSES} misses` : 'X'
               }\n${round.guesses.map((l) => (state.misses.includes(l) ? '🟥' : '🟩')).join('')}`
             }

@@ -18,9 +18,9 @@ describe('validateContact', () => {
 describe('contactPayload', () => {
   it('builds a subject from type and area', () => {
     expect(contactPayload({ ...base, kind: 'feature', area: 'Pokédle' }, ctx)._subject).toBe(
-      'Pokewwww · Feature suggestion · Pokédle',
+      'Pokewwwww · Feature suggestion · Pokédle',
     );
-    expect(contactPayload(base, ctx)._subject).toBe('Pokewwww · Comment');
+    expect(contactPayload(base, ctx)._subject).toBe('Pokewwwww · Comment');
   });
   it('sets reply-to only when an email is given', () => {
     expect(contactPayload(base, ctx)).not.toHaveProperty('_replyto');

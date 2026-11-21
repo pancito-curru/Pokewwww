@@ -139,7 +139,7 @@ function Result({ round }: { round: WordleRound }) {
   const maxBase = rowsFor(round.length);
 
   const text = () => {
-    const head = `Pokewwww Pokédle ${round.length} letters ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${
+    const head = `Pokewwwww Pokédle ${round.length} letters ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${
       won ? `${n}/${round.maxRows}` : `X/${round.maxRows}`
     }${round.hintUsed ? ' · hint' : ''}`;
     return `${head}\n${shareGrid(round.guesses, round.answer)}`;

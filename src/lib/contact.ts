@@ -16,7 +16,7 @@ export const CONTACT_KINDS: Record<ContactKind, { label: string; hint: string; p
   comment: {
     label: 'Comment',
     hint: 'Anything you want to tell us',
-    placeholder: 'What do you think of Pokewwww?',
+    placeholder: 'What do you think of Pokewwwww?',
   },
   bug: {
     label: 'Bug report',
@@ -56,7 +56,7 @@ export function validateContact(f: ContactForm): Partial<Record<keyof ContactFor
 export function contactPayload(f: ContactForm, context: { userAgent: string }) {
   const kind = CONTACT_KINDS[f.kind].label;
   return {
-    _subject: `Pokewwww · ${kind}${f.area !== 'General' ? ` · ${f.area}` : ''}`,
+    _subject: `Pokewwwww · ${kind}${f.area !== 'General' ? ` · ${f.area}` : ''}`,
     _template: 'table',
     _captcha: 'false',
     ...(f.email.trim() && { _replyto: f.email.trim() }),

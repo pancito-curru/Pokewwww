@@ -209,7 +209,7 @@ function Game({ round }: { round: CrossRound }) {
           <div className="flex flex-wrap gap-2">
             <ShareButton
               text={() =>
-                `Pokewwww Pokécross ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${SIZES[round.size].label} · ${
+                `Pokewwwww Pokécross ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${SIZES[round.size].label} · ${
                   round.difficulty
                 } clues\n✅ ${placements.length} words in ${formatClock(round.solvedAt! - round.startedAt)}${
                   round.revealed.length ? ` · ${round.revealed.length} letters revealed` : ' · no reveals'
