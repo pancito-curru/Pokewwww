@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light dark; }
+body { @apply bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-slate-100 antialiased; }
+.pixelated { image-rendering: pixelated; }
+
+@layer components {
+  /* Wordle tile: square, scales down with the row on narrow screens. */
+  .tile {
+    @apply flex aspect-square items-center justify-center rounded-md border-2 font-bold uppercase;
+    font-size: clamp(0.9rem, 4vw, 1.6rem);
+  }
+}
