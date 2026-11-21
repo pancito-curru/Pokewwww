@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import FilterPanel from '../../components/FilterPanel';
 import { todayKey } from '../../lib/rng';
 import { formatClock } from '../../lib/timed';
 import type { ClueDifficulty } from '../../lib/crossword/clues';
-import { SIZES, useCrossStore, type CrossMode, type CrossSize } from './store';
+import { SIZES, isOver, useCrossStore, type CrossMode, type CrossSize } from './store';
 
 const DIFFICULTY: Record<ClueDifficulty, { label: string; hint: string }> = {
   easy: { label: 'Easy', hint: 'Types, generation and category, plus a silhouette' },
@@ -11,7 +12,7 @@ const DIFFICULTY: Record<ClueDifficulty, { label: string; hint: string }> = {
 };
 
 export default function Setup() {
-  const { settings, setSettings, play, daily, unlimited, stats } = useCrossStore();
+  const { settings, setSettings, play, newUnlimited, daily, unlimited, stats } = useCrossStore();
   const isDaily = settings.mode === 'daily';
 
   const opt = (on: boolean) =>
@@ -26,15 +27,20 @@ export default function Setup() {
     </button>
   );
 
+  // An unlimited puzzle still being worked on: offer to resume it or replace it.
+  const unlimitedInProgress = !isDaily && !!unlimited && !isOver(unlimited);
   const label = isDaily
     ? daily?.key === todayKey()
       ? daily.solvedAt
         ? 'See solved puzzle'
-        : 'Continue'
+        : isOver(daily)
+          ? 'See puzzle'
+          : 'Continue'
       : 'Play'
-    : unlimited && unlimited.solvedAt === null
+    : unlimitedInProgress
       ? 'Continue'
       : 'New puzzle';
+  const [confirmNew, setConfirmNew] = useState(false);
 
   const s = stats[settings.mode];
 
@@ -116,13 +122,43 @@ export default function Setup() {
               </span>
             ))}
         </p>
-        <button
-          type="button"
-          onClick={play}
-          className="rounded-lg bg-red-600 px-6 py-2.5 font-semibold text-white shadow hover:bg-red-700"
-        >
-          {label}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {unlimitedInProgress &&
+            (confirmNew ? (
+              <span className="flex items-center gap-2 text-sm">
+                Discard the puzzle in progress?
+                <button
+                  type="button"
+                  onClick={newUnlimited}
+                  className="rounded bg-red-600 px-2.5 py-1 font-semibold text-white"
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmNew(false)}
+                  className="rounded border border-slate-300 px-2.5 py-1 dark:border-slate-600"
+                >
+                  No
+                </button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmNew(true)}
+                className="rounded-lg border border-slate-300 px-4 py-2.5 font-semibold hover:border-slate-400 dark:border-slate-600"
+              >
+                New puzzle
+              </button>
+            ))}
+          <button
+            type="button"
+            onClick={play}
+            className="rounded-lg bg-red-600 px-6 py-2.5 font-semibold text-white shadow hover:bg-red-700"
+          >
+            {label}
+          </button>
+        </div>
       </div>
     </section>
   );

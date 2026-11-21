@@ -10,6 +10,8 @@ interface Props {
   wrong: ReadonlySet<number>;
   revealed: ReadonlySet<number>;
   solved: boolean;
+  /** No cursor or word highlight (puzzle solved or ended). */
+  locked: boolean;
   onCellClick: (idx: number) => void;
 }
 
@@ -72,7 +74,18 @@ const Cell = memo(function Cell({
   );
 });
 
-export default function Grid({ puzzle, entries, numbers, activeIdx, activeCells, wrong, revealed, solved, onCellClick }: Props) {
+export default function Grid({
+  puzzle,
+  entries,
+  numbers,
+  activeIdx,
+  activeCells,
+  wrong,
+  revealed,
+  solved,
+  locked,
+  onCellClick,
+}: Props) {
   const flat = puzzle.cells.flat();
   return (
     <div
@@ -88,8 +101,8 @@ export default function Grid({ puzzle, entries, numbers, activeIdx, activeCells,
           solution={solution}
           entry={entries[idx]}
           number={numbers[idx]}
-          active={!solved && idx === activeIdx}
-          inWord={!solved && activeCells.has(idx)}
+          active={!locked && idx === activeIdx}
+          inWord={!locked && activeCells.has(idx)}
           wrong={wrong.has(idx)}
           revealed={revealed.has(idx)}
           solved={solved}

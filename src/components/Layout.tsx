@@ -2,12 +2,19 @@ import { useEffect } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { MODES } from '../games/modes';
 
+const NAV = [...MODES.map((m) => ({ path: m.path, title: m.title })), { path: '/contact', title: 'Contact' }];
+
+const navClass = ({ isActive }: { isActive: boolean }) =>
+  `rounded-md px-2.5 py-1 font-medium transition ${
+    isActive ? 'bg-red-600 text-white' : 'text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800'
+  }`;
+
 export default function Layout() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const mode = MODES.find((m) => m.path === pathname);
-    document.title = mode ? `${mode.title} · Pokewwww` : 'Pokewwww · Pokémon Trivia';
+    const page = NAV.find((m) => m.path === pathname);
+    document.title = page ? `${page.title} · Pokewwww` : 'Pokewwww · Pokémon Trivia';
     window.scrollTo(0, 0);
   }, [pathname]);
 
@@ -17,22 +24,16 @@ export default function Layout() {
         <Link to="/" className="font-pixel text-lg tracking-tight text-red-600 dark:text-red-400">
           Pokewwww
         </Link>
-        <nav aria-label="Game modes" className="-mx-1 flex flex-wrap gap-1 text-sm">
+        <nav aria-label="Main" className="-mx-1 flex flex-wrap items-center gap-1 text-sm">
           {MODES.map((m) => (
-            <NavLink
-              key={m.path}
-              to={m.path}
-              className={({ isActive }) =>
-                `rounded-md px-2.5 py-1 font-medium transition ${
-                  isActive
-                    ? 'bg-red-600 text-white'
-                    : 'text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800'
-                }`
-              }
-            >
+            <NavLink key={m.path} to={m.path} className={navClass}>
               {m.title}
             </NavLink>
           ))}
+          <span className="mx-1 hidden h-4 w-px bg-slate-300 sm:block dark:bg-slate-700" aria-hidden />
+          <NavLink to="/contact" className={navClass}>
+            Contact
+          </NavLink>
         </nav>
       </header>
       <main className="flex-1 pb-10">
@@ -50,6 +51,19 @@ export default function Layout() {
             <span aria-hidden>☕</span> Ko-fi
           </a>
           .
+        </p>
+        <p>
+          <Link className="underline" to="/contact">
+            Contact
+          </Link>{' '}
+          ·{' '}
+          <Link className="underline" to="/contact?type=bug">
+            Report a bug
+          </Link>{' '}
+          ·{' '}
+          <Link className="underline" to="/contact?type=feature">
+            Suggest a feature
+          </Link>
         </p>
         <p>
           Pokémon © Nintendo / Game Freak / The Pokémon Company. Data:{' '}

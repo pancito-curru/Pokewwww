@@ -35,6 +35,8 @@ export interface CrossRound {
   revealed: number[];
   startedAt: number;
   solvedAt: number | null;
+  /** Set when the player ends the puzzle without solving it (answers revealed). */
+  endedAt?: number | null;
 }
 
 export interface CrossStats {
@@ -55,6 +57,8 @@ interface CrossState {
   setEntry: (index: number, letter: string) => void;
   revealWord: (placementId: number) => void;
   reset: () => void;
+  /** Reveal the answers and end the current puzzle without solving it. */
+  endPuzzle: () => void;
   toSetup: () => void;
 }
 
@@ -75,8 +79,12 @@ function makeRound(s: CrossSettings): CrossRound {
     revealed: [],
     startedAt: Date.now(),
     solvedAt: null,
+    endedAt: null,
   };
 }
+
+/** Solved, or ended by the player: no more input. */
+export const isOver = (r: CrossRound) => r.solvedAt !== null || r.endedAt != null;
 
 export const isSolved = (r: CrossRound) =>
   r.puzzle.cells.flat().every((ch, i) => ch === null || r.entries[i] === ch);
@@ -119,7 +127,7 @@ export const useCrossStore = create<CrossState>()(
         play: () => {
           const { settings } = get();
           const r = current();
-          const resumable = settings.mode === 'daily' ? r?.key === todayKey() : r && r.solvedAt === null;
+          const resumable = settings.mode === 'daily' ? r?.key === todayKey() : r && !isOver(r);
           if (!resumable) set({ [settings.mode]: makeRound(settings) } as Partial<CrossState>);
           set({ screen: 'game' });
         },
@@ -131,7 +139,7 @@ export const useCrossStore = create<CrossState>()(
 
         setEntry: (index, letter) => {
           const r = current();
-          if (!r || r.solvedAt !== null || r.puzzle.cells.flat()[index] === null) return;
+          if (!r || isOver(r) || r.puzzle.cells.flat()[index] === null) return;
           const entries = [...r.entries];
           entries[index] = letter.toUpperCase();
           save({ ...r, entries });
@@ -140,7 +148,7 @@ export const useCrossStore = create<CrossState>()(
         revealWord: (id) => {
           const r = current();
           const pl = r?.puzzle.placements.find((p) => p.id === id);
-          if (!r || !pl || r.solvedAt !== null) return;
+          if (!r || !pl || isOver(r)) return;
           const entries = [...r.entries];
           const revealed = new Set(r.revealed);
           placementCells(pl).forEach(([row, col], i) => {
@@ -153,9 +161,26 @@ export const useCrossStore = create<CrossState>()(
 
         reset: () => {
           const r = current();
-          if (!r || r.solvedAt !== null) return;
+          if (!r || isOver(r)) return;
           set({
             [r.mode]: { ...r, entries: r.entries.map(() => ''), revealed: [], startedAt: Date.now() },
+          } as Partial<CrossState>);
+        },
+
+        endPuzzle: () => {
+          const r = current();
+          if (!r || isOver(r)) return;
+          const solution = r.puzzle.cells.flat();
+          const revealed = new Set(r.revealed);
+          solution.forEach((ch, i) => ch !== null && r.entries[i] !== ch && revealed.add(i));
+          // Set directly, not via save(): a filled-in grid must not count as a solve.
+          set({
+            [r.mode]: {
+              ...r,
+              entries: solution.map((ch) => ch ?? ''),
+              revealed: [...revealed],
+              endedAt: Date.now(),
+            },
           } as Partial<CrossState>);
         },
 

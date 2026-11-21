@@ -4,7 +4,7 @@ import Timer from '../../components/Timer';
 import { todayKey } from '../../lib/rng';
 import { formatClock } from '../../lib/timed';
 import { placementCells, type Dir } from '../../lib/crossword/generator';
-import { SIZES, useCrossStore, type CrossRound } from './store';
+import { SIZES, isOver, useCrossStore, type CrossRound } from './store';
 import Setup from './Setup';
 import Grid from './Grid';
 import ClueList from './ClueList';
@@ -23,10 +23,12 @@ interface Cursor {
 }
 
 function Game({ round }: { round: CrossRound }) {
-  const { setEntry, revealWord, reset, toSetup, newUnlimited } = useCrossStore.getState();
+  const { setEntry, revealWord, reset, endPuzzle, toSetup, newUnlimited } = useCrossStore.getState();
   const { puzzle, entries } = round;
   const { width, height, placements } = puzzle;
   const solved = round.solvedAt !== null;
+  const over = isOver(round);
+  const ended = over && !solved;
 
   // Static lookups for this puzzle.
   const { solution, cellsOf, wordsAt, numbers } = useMemo(() => {
@@ -47,7 +49,7 @@ function Game({ round }: { round: CrossRound }) {
   const [cursor, setCursor] = useState<Cursor>({ idx: cellsOf.get(first.id)![0], dir: first.dir });
   const [wrong, setWrong] = useState<Set<number>>(new Set());
   const [checkMsg, setCheckMsg] = useState<string | null>(null);
-  const [confirmReset, setConfirmReset] = useState(false);
+  const [confirm, setConfirm] = useState<'reset' | 'end' | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const activeId = wordsAt[cursor.idx][cursor.dir] ?? wordsAt[cursor.idx][cursor.dir === 'across' ? 'down' : 'across']!;
@@ -88,7 +90,7 @@ function Game({ round }: { round: CrossRound }) {
     });
 
   const typeLetter = (letter: string) => {
-    if (solved) return;
+    if (over) return;
     setEntry(cursor.idx, letter);
     clearWrong(cursor.idx);
     setCheckMsg(null);
@@ -98,7 +100,7 @@ function Game({ round }: { round: CrossRound }) {
   };
 
   const backspace = () => {
-    if (solved) return;
+    if (over) return;
     setCheckMsg(null);
     if (entries[cursor.idx]) {
       setEntry(cursor.idx, '');
@@ -180,8 +182,10 @@ function Game({ round }: { round: CrossRound }) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {solved ? (
-            <span className="font-mono text-2xl font-bold tabular-nums">{formatClock(round.solvedAt! - round.startedAt)}</span>
+          {over ? (
+            <span className="font-mono text-2xl font-bold tabular-nums">
+              {formatClock((round.solvedAt ?? round.endedAt!) - round.startedAt)}
+            </span>
           ) : (
             <Timer startedAt={round.startedAt} endsAt={null} />
           )}
@@ -223,9 +227,33 @@ function Game({ round }: { round: CrossRound }) {
         </section>
       )}
 
+      {ended && (
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-200/70 p-4 dark:bg-slate-800">
+          <div>
+            <p className="font-pixel text-sm">Puzzle ended</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              The answers are filled in; the ones you didn&apos;t get are in blue.
+              {round.mode === 'daily' ? ' A new daily puzzle comes tomorrow.' : ''}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className={btn} onClick={toSetup}>
+              Change options
+            </button>
+            <button
+              type="button"
+              onClick={newUnlimited}
+              className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white shadow hover:bg-red-700"
+            >
+              {round.mode === 'daily' ? 'Play unlimited' : 'New puzzle'}
+            </button>
+          </div>
+        </section>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-3">
-          {!solved && (
+          {!over && (
             <div className="sticky top-0 z-10 -mx-4 bg-slate-100/95 px-4 py-2 backdrop-blur dark:bg-slate-900/95 lg:static lg:mx-0 lg:rounded-lg lg:bg-amber-100 lg:dark:bg-amber-900/40">
               <p className="text-sm">
                 <strong>
@@ -258,11 +286,12 @@ function Game({ round }: { round: CrossRound }) {
               wrong={wrong}
               revealed={revealed}
               solved={solved}
+              locked={over}
               onCellClick={onCellClick}
             />
           </div>
 
-          {!solved && (
+          {!over && (
             <div className="flex flex-wrap items-center gap-2">
               <button type="button" className={btn} onClick={check} disabled={!filled}>
                 Check
@@ -277,29 +306,47 @@ function Game({ round }: { round: CrossRound }) {
               >
                 Reveal word
               </button>
-              {confirmReset ? (
-                <span className="flex items-center gap-2 text-sm">
-                  Clear every letter?
+              {confirm ? (
+                <span className="flex items-center gap-2 text-sm" role="group" aria-label="Confirm">
+                  {confirm === 'reset' ? 'Clear every letter?' : 'Show the answers and end this puzzle?'}
                   <button
                     type="button"
                     className="rounded bg-red-600 px-2.5 py-1 font-semibold text-white"
                     onClick={() => {
-                      reset();
+                      if (confirm === 'reset') {
+                        reset();
+                        focus();
+                      } else endPuzzle();
                       setWrong(new Set());
-                      setConfirmReset(false);
-                      focus();
+                      setConfirm(null);
                     }}
                   >
                     Yes
                   </button>
-                  <button type="button" className={btn} onClick={() => setConfirmReset(false)}>
+                  <button
+                    type="button"
+                    className={btn}
+                    onClick={() => {
+                      setConfirm(null);
+                      focus();
+                    }}
+                  >
                     No
                   </button>
                 </span>
               ) : (
-                <button type="button" className={btn} onClick={() => setConfirmReset(true)} disabled={!filled}>
-                  Reset
-                </button>
+                <>
+                  <button type="button" className={btn} onClick={() => setConfirm('reset')} disabled={!filled}>
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    className={`${btn} hover:border-red-500 hover:text-red-600`}
+                    onClick={() => setConfirm('end')}
+                  >
+                    End puzzle
+                  </button>
+                </>
               )}
               <span className="ml-auto text-sm tabular-nums text-slate-500">
                 {checkMsg ?? `${filled} / ${total} letters`}
@@ -315,7 +362,7 @@ function Game({ round }: { round: CrossRound }) {
         <aside className="lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:pr-1">
           <ClueList
             placements={placements}
-            activeId={solved ? null : activeId}
+            activeId={over ? null : activeId}
             solvedIds={solvedIds}
             showSilhouettes={round.difficulty === 'easy'}
             onSelect={selectWord}
