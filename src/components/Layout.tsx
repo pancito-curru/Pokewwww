@@ -38,10 +38,24 @@ export default function Layout() {
       <main className="flex-1 pb-10">
         <Outlet />
       </main>
-      <footer className="border-t border-slate-300 py-4 text-center text-xs text-slate-500 dark:border-slate-700">
-        Fan-made, non-commercial. Pokémon © Nintendo / Game Freak / The Pokémon Company. Data:{' '}
-        <a className="underline" href="https://pokeapi.co">PokeAPI</a>. Sprites:{' '}
-        <a className="underline" href="https://github.com/msikma/pokesprite">PokéSprite</a>.
+      <footer className="space-y-2 border-t border-slate-300 py-4 text-center text-xs text-slate-500 dark:border-slate-700">
+        <p>
+          Pokewwww is a non-profit fan project. If you&apos;d like to support it or help out, you can do so on{' '}
+          <a
+            className="inline-flex items-center gap-1 font-semibold text-red-600 underline hover:text-red-700 dark:text-red-400"
+            href="https://ko-fi.com/pancitocurru"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span aria-hidden>☕</span> Ko-fi
+          </a>
+          .
+        </p>
+        <p>
+          Pokémon © Nintendo / Game Freak / The Pokémon Company. Data:{' '}
+          <a className="underline" href="https://pokeapi.co">PokeAPI</a>. Sprites:{' '}
+          <a className="underline" href="https://github.com/msikma/pokesprite">PokéSprite</a>.
+        </p>
       </footer>
     </div>
   );
