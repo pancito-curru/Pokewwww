@@ -12,7 +12,10 @@ describe('crossword store: ending a puzzle', () => {
 
   it('reveals every answer and closes the puzzle without counting a solve', () => {
     const solvedBefore = store().stats.unlimited.solved;
-    store().setEntry(round().puzzle.cells.flat().findIndex((c) => c !== null), 'Z');
+    // Type a letter that is certainly wrong for that square (the puzzle is random).
+    const cells = round().puzzle.cells.flat();
+    const idx = cells.findIndex((c) => c !== null);
+    store().setEntry(idx, cells[idx] === 'Z' ? 'Q' : 'Z');
     store().endPuzzle();
 
     const r = round();
