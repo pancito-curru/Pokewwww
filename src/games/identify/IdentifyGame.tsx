@@ -171,7 +171,7 @@ function Daily({ kind }: { kind: IdentifyKind }) {
       {!done && (
         <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
           <Tries used={item.wrong.length} />
-          <PokemonInput onSelect={onGuess} exclude={exclude} />
+          <PokemonInput onSelect={onGuess} exclude={exclude} showSprites={kind !== 'silhouette'} />
           {message && <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">{message}</p>}
           <DailyHints wrong={item.wrong.length} target={target} />
         </div>
@@ -329,7 +329,7 @@ function RunView({ kind }: { kind: IdentifyKind }) {
           <>
             <Tries used={current.wrong.length} />
             <div className="flex w-full items-start gap-2">
-              <PokemonInput key={current.id} onSelect={onGuess} exclude={exclude} />
+              <PokemonInput key={current.id} onSelect={onGuess} exclude={exclude} showSprites={kind !== 'silhouette'} />
               <button type="button" className={`${secondary} shrink-0 py-2.5`} onClick={skipRun}>
                 Skip
               </button>
