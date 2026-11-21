@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "data": "tsx scripts/build-pokedex.ts"
+    "data": "tsx scripts/build-pokedex.ts",
+    "data:moves": "tsx scripts/build-movesets.ts"
   },
   "dependencies": {
     "react": "18.3.1",

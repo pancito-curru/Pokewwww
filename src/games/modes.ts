@@ -11,7 +11,7 @@ export const MODES: GameMode[] = [
     path: '/timed',
     title: "Name 'Em All",
     blurb: 'Race the clock and name every Pokémon you can.',
-    sprites: [25, 1, 4, 7],
+    sprites: [1, 4, 7],
   },
   {
     path: '/guess',
@@ -42,5 +42,17 @@ export const MODES: GameMode[] = [
     title: 'Cries',
     blurb: 'Name the Pokémon from its cry: one a day, or as many as you can against the clock.',
     sprites: [39, 441, 295],
+  },
+  {
+    path: '/moveset',
+    title: 'Moveset',
+    blurb: 'Name the Pokémon from the moves it learns. Each miss reveals another move.',
+    sprites: [68, 106, 107],
+  },
+  {
+    path: '/hangman',
+    title: 'Hangman',
+    blurb: 'Guess the Pokémon’s name one letter at a time before the drawing is complete.',
+    sprites: [425, 355, 354],
   },
 ];

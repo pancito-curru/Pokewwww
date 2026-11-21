@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { LetterState } from '../lib/wordle';
 
 const ROWS = ['QWERTYUIOP', 'ASDFGHJKL', '⏎ZXCVBNM⌫'];
+const LETTER_ROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
 
 const STYLE: Record<LetterState | 'none', string> = {
   none: 'bg-slate-200 text-slate-900 hover:bg-slate-300 dark:bg-slate-600 dark:text-white dark:hover:bg-slate-500',
@@ -13,8 +14,9 @@ const STYLE: Record<LetterState | 'none', string> = {
 interface Props {
   states: Record<string, LetterState>;
   onKey: (key: string) => void;
-  onEnter: () => void;
-  onBackspace: () => void;
+  /** Omit both onEnter and onBackspace for a letters-only keyboard (Hangman). */
+  onEnter?: () => void;
+  onBackspace?: () => void;
   disabled?: boolean;
 }
 
@@ -25,8 +27,8 @@ export default function Keyboard({ states, onKey, onEnter, onBackspace, disabled
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === 'Enter') onEnter();
-      else if (e.key === 'Backspace') onBackspace();
+      if (e.key === 'Enter' && onEnter) onEnter();
+      else if (e.key === 'Backspace' && onBackspace) onBackspace();
       else if (/^[a-z]$/i.test(e.key)) onKey(e.key.toUpperCase());
       else return;
       e.preventDefault();
@@ -37,7 +39,7 @@ export default function Keyboard({ states, onKey, onEnter, onBackspace, disabled
 
   return (
     <div className="mx-auto w-full max-w-lg select-none space-y-1.5" aria-label="Keyboard">
-      {ROWS.map((row) => (
+      {(onEnter || onBackspace ? ROWS : LETTER_ROWS).map((row) => (
         <div key={row} className="flex justify-center gap-1.5">
           {[...row].map((k) => {
             const wide = k === '⏎' || k === '⌫';
@@ -48,8 +50,8 @@ export default function Keyboard({ states, onKey, onEnter, onBackspace, disabled
                 disabled={disabled}
                 onClick={(e) => {
                   (e.currentTarget as HTMLButtonElement).blur();
-                  if (k === '⏎') onEnter();
-                  else if (k === '⌫') onBackspace();
+                  if (k === '⏎') onEnter?.();
+                  else if (k === '⌫') onBackspace?.();
                   else onKey(k);
                 }}
                 aria-label={k === '⏎' ? 'Enter' : k === '⌫' ? 'Backspace' : k}

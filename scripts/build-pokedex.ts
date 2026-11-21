@@ -6,61 +6,18 @@
  *   npm run data            # build everything
  *   npm run data -- --limit 151   # only the first N species (quick test)
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { normalize, toLetters, EXTRA_ALIASES } from '../src/lib/normalize';
 import { REGIONS, type Pokemon, type PokeType, type Category } from '../src/data/types';
 import { SPRITE_BASE } from '../src/data/sprites';
+import { API, ROOT, en, ensureCache, getJson, idFromUrl, pool } from './fetch-cache';
 
-const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const CACHE = path.join(ROOT, 'scripts', 'cache');
 const OUT = path.join(ROOT, 'src', 'data', 'pokedex.json');
-const API = 'https://pokeapi.co/api/v2';
-const CONCURRENCY = 8;
 
 const limitArg = process.argv.indexOf('--limit');
 const LIMIT = limitArg > -1 ? Number(process.argv[limitArg + 1]) : Infinity;
 
-async function getJson<T = any>(url: string): Promise<T> {
-  const key = createHash('sha1').update(url).digest('hex') + '.json';
-  const file = path.join(CACHE, key);
-  if (existsSync(file)) return JSON.parse(await readFile(file, 'utf8'));
-  for (let attempt = 1; ; attempt++) {
-    const res = await fetch(url, { headers: { 'User-Agent': 'pokewwww-build-script' } });
-    if (res.ok) {
-      const text = await res.text();
-      await writeFile(file, text);
-      return JSON.parse(text);
-    }
-    if (attempt >= 4) throw new Error(`${res.status} ${url}`);
-    await new Promise((r) => setTimeout(r, 500 * attempt));
-  }
-}
-
-async function pool<T, R>(items: T[], fn: (item: T, i: number) => Promise<R>): Promise<R[]> {
-  const out: R[] = new Array(items.length);
-  let next = 0;
-  let done = 0;
-  await Promise.all(
-    Array.from({ length: CONCURRENCY }, async () => {
-      while (next < items.length) {
-        const i = next++;
-        out[i] = await fn(items[i], i);
-        if (++done % 50 === 0 || done === items.length)
-          process.stdout.write(`\r  ${done}/${items.length}`);
-      }
-    }),
-  );
-  process.stdout.write('\n');
-  return out;
-}
-
-const idFromUrl = (url: string) => Number(url.split('/').filter(Boolean).pop());
-const en = <T extends { language: { name: string } }>(arr: T[]) =>
-  arr.find((x) => x.language.name === 'en');
 
 function cleanFlavor(text: string, name: string): string {
   const flat = text.replace(/[\n\f\r­]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -69,7 +26,7 @@ function cleanFlavor(text: string, name: string): string {
 }
 
 async function main() {
-  await mkdir(CACHE, { recursive: true });
+  await ensureCache();
 
   console.log('Fetching PokéSprite index…');
   const spriteIndex: Record<string, { slug: { eng: string } }> = await getJson(

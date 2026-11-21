@@ -10,6 +10,8 @@ const WordleGame = lazy(() => import('./games/wordle/WordleGame'));
 const CrosswordGame = lazy(() => import('./games/crossword/CrosswordGame'));
 const SilhouetteGame = lazy(() => import('./games/identify/SilhouetteGame'));
 const CryGame = lazy(() => import('./games/identify/CryGame'));
+const MovesetGame = lazy(() => import('./games/moveset/MovesetGame'));
+const HangmanGame = lazy(() => import('./games/hangman/HangmanGame'));
 const Contact = lazy(() => import('./pages/Contact'));
 
 const Loading = () => <p className="py-10 text-center text-sm text-slate-500">Loading…</p>;
@@ -25,6 +27,8 @@ export default function App() {
         <Route path="crossword" element={<Suspense fallback={<Loading />}><CrosswordGame /></Suspense>} />
         <Route path="silhouette" element={<Suspense fallback={<Loading />}><SilhouetteGame /></Suspense>} />
         <Route path="cry" element={<Suspense fallback={<Loading />}><CryGame /></Suspense>} />
+        <Route path="moveset" element={<Suspense fallback={<Loading />}><MovesetGame /></Suspense>} />
+        <Route path="hangman" element={<Suspense fallback={<Loading />}><HangmanGame /></Suspense>} />
         <Route path="contact" element={<Suspense fallback={<Loading />}><Contact /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

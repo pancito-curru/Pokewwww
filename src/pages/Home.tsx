@@ -12,6 +12,7 @@ import { useWordleStore } from '../games/wordle/store';
 import { useCrossStore } from '../games/crossword/store';
 import { identifyStores } from '../games/identify/store';
 import type { IdentifyKind } from '../games/identify/kinds';
+import { useHangmanStore, useMovesetStore } from '../games/puzzle/stores';
 
 const DAILY_LENGTHS = availableLengths(POKEDEX).map((l) => l.length);
 
@@ -29,17 +30,20 @@ export default function Home() {
           <Link
             key={m.path}
             to={m.path}
-            className="flex flex-col rounded-xl bg-white p-5 shadow transition hover:-translate-y-0.5 hover:shadow-lg dark:bg-slate-800"
+            className="flex min-h-[17rem] flex-col rounded-xl bg-white p-5 shadow transition hover:-translate-y-0.5 hover:shadow-lg dark:bg-slate-800"
           >
-            <div className="mb-3 flex flex-wrap gap-1">
+            {/* Sprites centered in the space above the text, which stays at the bottom. */}
+            <div className="flex flex-1 items-center justify-center gap-2 py-3">
               {m.sprites.map((id) => (
                 <Sprite key={id} id={id} scale={1.25} />
               ))}
             </div>
-            <h2 className="font-pixel text-sm">{m.title}</h2>
-            <p className="mt-2 flex-1 text-sm text-slate-600 dark:text-slate-300">{m.blurb}</p>
-            <div className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              {STATUS[m.path]?.()}
+            <div>
+              <h2 className="font-pixel text-sm">{m.title}</h2>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{m.blurb}</p>
+              <div className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                {STATUS[m.path]?.()}
+              </div>
             </div>
           </Link>
         ))}
@@ -115,6 +119,8 @@ const STATUS: Record<string, () => ReactNode> = {
   '/crossword': () => <CrossStatus />,
   '/silhouette': () => <IdentifyStatus kind="silhouette" />,
   '/cry': () => <IdentifyStatus kind="cry" />,
+  '/moveset': () => <MovesetStatus />,
+  '/hangman': () => <HangmanStatus />,
 };
 
 function IdentifyStatus({ kind }: { kind: IdentifyKind }) {
@@ -132,4 +138,38 @@ function IdentifyStatus({ kind }: { kind: IdentifyKind }) {
       {extra}
     </>
   );
+}
+
+function PuzzleStatusView({
+  daily,
+  streak,
+  unit,
+}: {
+  daily: { key: string; status: string; guesses: unknown[] } | null;
+  streak: number;
+  unit: 'guess' | 'miss';
+}) {
+  const today = daily?.key === todayKey() ? daily : null;
+  const extra = streak ? ` · ${streak}-day streak` : '';
+  if (!today || (today.status === 'playing' && !today.guesses.length)) return <>Pokémon of the day is waiting{extra}</>;
+  if (today.status === 'playing') return <Pending>Daily in progress</Pending>;
+  const n = unit === 'guess' ? today.guesses.length : null;
+  return (
+    <>
+      <Done>{today.status === 'won' ? (n ? `Daily solved in ${n}` : 'Daily solved') : 'Daily done'}</Done>
+      {extra}
+    </>
+  );
+}
+
+function MovesetStatus() {
+  const daily = useMovesetStore((s) => s.daily);
+  const streak = useMovesetStore((s) => s.stats.daily.streak);
+  return <PuzzleStatusView daily={daily} streak={streak} unit="guess" />;
+}
+
+function HangmanStatus() {
+  const daily = useHangmanStore((s) => s.daily);
+  const streak = useHangmanStore((s) => s.stats.daily.streak);
+  return <PuzzleStatusView daily={daily} streak={streak} unit="miss" />;
 }
