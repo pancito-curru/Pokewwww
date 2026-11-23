@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { memo, useMemo } from 'react';
 import { byId, REGIONS, type Pokemon } from '../../data';
 import Sprite from '../../components/Sprite';
@@ -59,6 +60,7 @@ const Cell = memo(function Cell({
 
 /** All Pokémon in scope, grouped by generation. */
 export default memo(function DexGrid({ scopeIds, found, ended, silhouettes, lastId }: Props) {
+  const { t } = useT();
   const groups = useMemo(() => {
     const m = new Map<number, Pokemon[]>();
     for (const id of scopeIds) {
@@ -76,7 +78,7 @@ export default memo(function DexGrid({ scopeIds, found, ended, silhouettes, last
           <section key={gen}>
             <h3 className="mb-2 flex items-baseline justify-between text-sm font-semibold">
               <span>
-                Gen {gen} · {REGIONS[gen]}
+                {t('status.gen', { n: gen })} · {REGIONS[gen]}
               </span>
               <span className="tabular-nums text-slate-500">
                 {n} / {list.length}

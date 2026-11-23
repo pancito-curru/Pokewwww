@@ -1,6 +1,7 @@
 import { byId } from '../../data';
 import { evaluate } from '../../lib/hangman';
 import { MAX_GUESSES } from '../../lib/moveset';
+import { evaluate as shinyEvaluate } from '../../lib/shiny';
 import { createPuzzleStore } from './createPuzzleStore';
 
 /** Moveset: guesses are Pokémon ids. */
@@ -26,4 +27,16 @@ export const useHangmanStore = createPuzzleStore<string>({
     return { ...r, guesses, status: s.solved ? 'won' : s.lost ? 'lost' : 'playing' };
   },
   bucket: (r) => evaluate(byId.get(r.targetId)!.name, r.guesses).misses.length,
+});
+
+/** Shiny Hunt: guesses are the Pokémon ids clicked; the target is the one whose sprite is shiny. */
+export const useShinyStore = createPuzzleStore<number>({
+  name: 'shiny',
+  addGuess: (r, id) => {
+    if (r.guesses.includes(id)) return null;
+    const guesses = [...r.guesses, id];
+    const s = shinyEvaluate(guesses, r.targetId);
+    return { ...r, guesses, status: s.won ? 'won' : s.lost ? 'lost' : 'playing' };
+  },
+  bucket: (r) => shinyEvaluate(r.guesses, r.targetId).misses,
 });

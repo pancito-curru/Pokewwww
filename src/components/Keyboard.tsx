@@ -1,3 +1,4 @@
+import { useT } from '../i18n';
 import { useEffect } from 'react';
 import type { LetterState } from '../lib/wordle';
 
@@ -22,6 +23,7 @@ interface Props {
 
 /** On-screen keyboard that also listens to the physical one. */
 export default function Keyboard({ states, onKey, onEnter, onBackspace, disabled }: Props) {
+  const { t } = useT();
   useEffect(() => {
     if (disabled) return;
     const handler = (e: KeyboardEvent) => {
@@ -38,7 +40,7 @@ export default function Keyboard({ states, onKey, onEnter, onBackspace, disabled
   }, [onKey, onEnter, onBackspace, disabled]);
 
   return (
-    <div className="mx-auto w-full max-w-lg select-none space-y-1.5" aria-label="Keyboard">
+    <div className="mx-auto w-full max-w-lg select-none space-y-1.5" aria-label={t('kb.label')}>
       {(onEnter || onBackspace ? ROWS : LETTER_ROWS).map((row) => (
         <div key={row} className="flex justify-center gap-1.5">
           {[...row].map((k) => {
@@ -54,12 +56,12 @@ export default function Keyboard({ states, onKey, onEnter, onBackspace, disabled
                   else if (k === '⌫') onBackspace?.();
                   else onKey(k);
                 }}
-                aria-label={k === '⏎' ? 'Enter' : k === '⌫' ? 'Backspace' : k}
+                aria-label={k === '⏎' ? t('kb.enter') : k === '⌫' ? t('kb.backspace') : k}
                 className={`h-12 rounded-md text-sm font-bold transition disabled:opacity-60 ${
                   wide ? 'flex-[1.5] text-base' : 'flex-1'
                 } ${STYLE[states[k] ?? 'none']}`}
               >
-                {k === '⏎' ? 'Enter' : k}
+                {k === '⏎' ? t('kb.enter') : k}
               </button>
             );
           })}

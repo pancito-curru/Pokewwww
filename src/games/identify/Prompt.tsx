@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { useEffect, useRef, useState } from 'react';
 import { byId } from '../../data';
 import { artworkUrl, cryUrl } from '../../data/sprites';
@@ -22,6 +23,7 @@ const RING: Record<string, string> = {
 
 /** The centered card: a silhouette or a cry, then the Pokémon once revealed. */
 export default function Prompt({ kind, id, revealed, outcome, preload = [] }: Props) {
+  const { t } = useT();
   const p = byId.get(id)!;
   useEffect(() => {
     for (const next of preload) {
@@ -56,13 +58,13 @@ export default function Prompt({ kind, id, revealed, outcome, preload = [] }: Pr
                 {p.name} <span className="font-mono text-sm font-normal text-slate-400">#{p.id}</span>
               </p>
               <div className="mt-1 flex gap-1">
-                {p.types.map((t) => (
-                  <TypeBadge key={t} type={t} />
+                {p.types.map((ty) => (
+                  <TypeBadge key={ty} type={ty} />
                 ))}
               </div>
             </>
           ) : (
-            <p className="font-pixel text-sm text-slate-500">Who&apos;s that Pokémon?</p>
+            <p className="font-pixel text-sm text-slate-500">{t('id.whosThat')}</p>
           )}
         </div>
 
@@ -73,6 +75,7 @@ export default function Prompt({ kind, id, revealed, outcome, preload = [] }: Pr
 }
 
 function Artwork({ id, hidden }: { id: number; hidden: boolean }) {
+  const { t } = useT();
   const [loaded, setLoaded] = useState(false);
   useEffect(() => setLoaded(false), [id]);
   return (
@@ -81,7 +84,7 @@ function Artwork({ id, hidden }: { id: number; hidden: boolean }) {
       <img
         key={id}
         src={artworkUrl(id)}
-        alt={hidden ? 'Silhouette of a Pokémon' : byId.get(id)!.name}
+        alt={hidden ? t('id.silhouetteAlt') : byId.get(id)!.name}
         draggable={false}
         onLoad={() => setLoaded(true)}
         onContextMenu={(e) => hidden && e.preventDefault()}
@@ -97,6 +100,7 @@ const canPlayOgg = () =>
 
 /** Big play button for a cry. Tries to autoplay; browsers may need a tap first. */
 function CryPlayer({ id, compact = false }: { id: number; compact?: boolean }) {
+  const { t } = useT();
   const audio = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -144,14 +148,14 @@ function CryPlayer({ id, compact = false }: { id: number; compact?: boolean }) {
         onClick={play}
         className="mt-3 rounded-full border border-slate-300 px-4 py-1.5 text-sm font-semibold hover:border-slate-400 dark:border-slate-600"
       >
-        🔊 Play cry again
+        🔊 {t('id.cryAgain')}
       </button>
     );
 
   if (failed || !canPlayOgg())
     return (
       <p className="flex aspect-square w-full max-w-[18rem] items-center justify-center p-6 text-center text-sm text-rose-600 dark:text-rose-400">
-        This browser can&apos;t play the cry (Ogg audio). Try Chrome, Firefox or Edge, or update Safari.
+        {t('id.cryUnsupported')}
       </p>
     );
 
@@ -160,7 +164,7 @@ function CryPlayer({ id, compact = false }: { id: number; compact?: boolean }) {
       <button
         type="button"
         onClick={play}
-        aria-label="Play the cry"
+        aria-label={t('id.playCry')}
         className={`relative flex h-40 w-40 items-center justify-center rounded-full bg-red-600 text-6xl text-white shadow-lg transition hover:scale-105 hover:bg-red-700 active:scale-95 ${
           playing ? 'animate-pulse' : ''
         }`}
@@ -168,7 +172,7 @@ function CryPlayer({ id, compact = false }: { id: number; compact?: boolean }) {
         {playing && <span className="absolute inset-0 animate-ping rounded-full bg-red-500 opacity-30" aria-hidden />}
         <span aria-hidden>{playing ? '🔊' : '▶'}</span>
       </button>
-      <p className="mt-4 text-sm text-slate-500">{blocked ? 'Tap to play the cry' : 'Tap to replay'}</p>
+      <p className="mt-4 text-sm text-slate-500">{blocked ? t('id.tapPlay') : t('id.tapReplay')}</p>
     </div>
   );
 }

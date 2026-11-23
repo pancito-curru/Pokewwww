@@ -1,3 +1,4 @@
+import { useT } from '../i18n';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -19,6 +20,7 @@ const field =
 const label = 'mb-1 block text-sm font-semibold';
 
 export default function Contact() {
+  const { t, tx } = useT();
   const [params] = useSearchParams();
   const initialKind = (Object.keys(CONTACT_KINDS) as ContactKind[]).find((k) => k === params.get('type')) ?? 'comment';
   const empty: ContactForm = { kind: initialKind, area: 'General', message: '', name: '', email: '' };
@@ -65,9 +67,9 @@ export default function Contact() {
         <p className="text-4xl" aria-hidden>
           📬
         </p>
-        <h1 className="mt-3 font-pixel text-lg">Thanks!</h1>
+        <h1 className="mt-3 font-pixel text-lg">{t('ct.thanks')}</h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">
-          Your message was sent.{form.email ? ' We’ll reply to the address you gave if needed.' : ''}
+          {t('ct.sent')}{form.email ? ` ${t('ct.willReply')}` : ''}
         </p>
         <button
           type="button"
@@ -77,23 +79,21 @@ export default function Contact() {
           }}
           className="mt-6 rounded-lg border border-slate-300 px-4 py-2 font-semibold hover:border-slate-400 dark:border-slate-600"
         >
-          Send another message
+          {t('ct.another')}
         </button>
       </section>
     );
 
-  const kindInfo = CONTACT_KINDS[form.kind];
-
   return (
     <section className="mx-auto max-w-xl rounded-xl bg-white p-6 shadow dark:bg-slate-800/60">
-      <h1 className="font-pixel text-xl">Contact</h1>
+      <h1 className="font-pixel text-xl">{t('nav.contact')}</h1>
       <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-        Found a bug, have an idea, or just want to say hi? Send a message.
+        {t('ct.intro')}
       </p>
 
       <form onSubmit={submit} noValidate className="mt-6 space-y-5">
         <fieldset>
-          <legend className={label}>What is it about?</legend>
+          <legend className={label}>{t('ct.about')}</legend>
           <div className="grid gap-2 sm:grid-cols-3">
             {(Object.keys(CONTACT_KINDS) as ContactKind[]).map((k) => (
               <label
@@ -110,11 +110,11 @@ export default function Contact() {
                   value={k}
                   checked={form.kind === k}
                   onChange={() => set('kind', k)}
-                  aria-label={CONTACT_KINDS[k].label}
+                  aria-label={t(`ct.kind.${k}`)}
                   className="sr-only"
                 />
-                <span className="block font-semibold">{CONTACT_KINDS[k].label}</span>
-                <span className="block text-xs text-slate-500">{CONTACT_KINDS[k].hint}</span>
+                <span className="block font-semibold">{t(`ct.kind.${k}`)}</span>
+                <span className="block text-xs text-slate-500">{t(`ct.hint.${k}`)}</span>
               </label>
             ))}
           </div>
@@ -122,25 +122,27 @@ export default function Contact() {
 
         <div>
           <label htmlFor="contact-area" className={label}>
-            Which part of the site?
+            {t('ct.area')}
           </label>
           <select id="contact-area" className={field} value={form.area} onChange={(e) => set('area', e.target.value)}>
             {CONTACT_AREAS.map((a) => (
-              <option key={a}>{a}</option>
+              <option key={a.value} value={a.value}>
+                {t(a.key)}
+              </option>
             ))}
           </select>
         </div>
 
         <div>
           <label htmlFor="contact-message" className={label}>
-            Message
+            {t('ct.message')}
           </label>
           <textarea
             id="contact-message"
             rows={6}
             maxLength={MAX_MESSAGE + 200}
             className={field}
-            placeholder={kindInfo.placeholder}
+            placeholder={t(`ct.ph.${form.kind}`)}
             value={form.message}
             onChange={(e) => set('message', e.target.value)}
             aria-invalid={!!errors.message}
@@ -148,21 +150,21 @@ export default function Contact() {
           />
           <div className="mt-1 flex justify-between text-xs">
             <span id="contact-message-error" className="text-rose-600 dark:text-rose-400">
-              {errors.message}
+              {errors.message && t(`ct.err.${errors.message}`, { max: MAX_MESSAGE })}
             </span>
             <span className="tabular-nums text-slate-400">
               {form.message.trim().length}/{MAX_MESSAGE}
             </span>
           </div>
           {form.kind === 'bug' && (
-            <p className="mt-1 text-xs text-slate-500">Your browser version is attached to bug reports to help track it down.</p>
+            <p className="mt-1 text-xs text-slate-500">{t('ct.browserNote')}</p>
           )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="contact-name" className={label}>
-              Name <span className="font-normal text-slate-400">(optional)</span>
+              {t('ct.name')} <span className="font-normal text-slate-400">{t('ct.optional')}</span>
             </label>
             <input
               id="contact-name"
@@ -174,7 +176,7 @@ export default function Contact() {
           </div>
           <div>
             <label htmlFor="contact-email" className={label}>
-              Email <span className="font-normal text-slate-400">(optional, for a reply)</span>
+              {t('ct.email')} <span className="font-normal text-slate-400">{t('ct.optionalReply')}</span>
             </label>
             <input
               id="contact-email"
@@ -187,7 +189,7 @@ export default function Contact() {
               aria-describedby={errors.email ? 'contact-email-error' : undefined}
             />
             <p id="contact-email-error" className="mt-1 text-xs text-rose-600 dark:text-rose-400">
-              {errors.email}
+              {errors.email && t(`ct.err.${errors.email}`, { max: MAX_MESSAGE })}
             </p>
           </div>
         </div>
@@ -206,22 +208,24 @@ export default function Contact() {
 
         {status === 'error' && (
           <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
-            The message couldn&apos;t be sent. Please try again in a moment, or email{' '}
-            <a className="font-semibold underline" href={`mailto:${CONTACT_EMAIL}`}>
-              {CONTACT_EMAIL}
-            </a>
-            .
+            {tx('ct.error', {
+              mail: (
+                <a className="font-semibold underline" href={`mailto:${CONTACT_EMAIL}`}>
+                  {CONTACT_EMAIL}
+                </a>
+              ),
+            })}
           </p>
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5 dark:border-slate-700">
-          <p className="text-xs text-slate-500">Messages are delivered by email through FormSubmit.</p>
+          <p className="text-xs text-slate-500">{t('ct.delivery')}</p>
           <button
             type="submit"
             disabled={status === 'sending'}
             className="rounded-lg bg-red-600 px-6 py-2.5 font-semibold text-white shadow hover:bg-red-700 disabled:opacity-60"
           >
-            {status === 'sending' ? 'Sending…' : 'Send message'}
+            {status === 'sending' ? t('ct.sending') : t('ct.send')}
           </button>
         </div>
       </form>

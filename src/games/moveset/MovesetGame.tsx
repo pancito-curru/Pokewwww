@@ -1,29 +1,38 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useT, type TFn } from '../../i18n';
 import PokemonInput from '../../components/PokemonInput';
 import TypeBadge from '../../components/TypeBadge';
 import type { PokeType } from '../../data';
-import { guessRow, learnLabel, MAX_GUESSES, movesShown, START_SHOWN, type MovesetData } from '../../lib/moveset';
+import { guessRow, learnLabel, type Learn, MAX_GUESSES, movesShown, START_SHOWN, type MovesetData } from '../../lib/moveset';
 import { useMovesetStore } from '../puzzle/stores';
 import { GiveUp, PuzzleHeader, PuzzleResult, UnlimitedOptions, WrongGuesses } from '../puzzle/Chrome';
 
-const CLASS_LABEL: Record<string, { icon: string; label: string }> = {
-  physical: { icon: '💥', label: 'Physical' },
-  special: { icon: '🌀', label: 'Special' },
-  status: { icon: '✨', label: 'Status' },
-};
+const CLASS_ICON: Record<string, string> = { physical: '💥', special: '🌀', status: '✨' };
+const METHODS = ['machine', 'tutor', 'egg', 'reminder'];
+
+const learnText = (t: TFn, l: Learn) =>
+  typeof l === 'number'
+    ? l === 0
+      ? t('mv.evolution')
+      : t('mv.level', { n: l })
+    : METHODS.includes(l)
+      ? t(`mv.m.${l}` as 'mv.m.machine')
+      : learnLabel(l);
 
 export default function MovesetGame() {
+  const { t } = useT();
   // The move data is ~120 kB, so it loads only when this game opens.
   const [data, setData] = useState<MovesetData | null>(null);
   useEffect(() => {
     import('../../data/movesets.json').then((m) => setData(m.default as unknown as MovesetData));
   }, []);
 
-  if (!data) return <p className="py-10 text-center text-sm text-slate-500">Loading moves…</p>;
+  if (!data) return <p className="py-10 text-center text-sm text-slate-500">{t('mv.loading')}</p>;
   return <Moveset data={data} />;
 }
 
 function Moveset({ data }: { data: MovesetData }) {
+  const { t } = useT();
   const mode = useMovesetStore((s) => s.mode);
   const round = useMovesetStore((s) => (s.mode === 'daily' ? s.daily : s.unlimited));
   const generations = useMovesetStore((s) => s.generations);
@@ -45,8 +54,8 @@ function Moveset({ data }: { data: MovesetData }) {
   return (
     <div className="space-y-5">
       <PuzzleHeader
-        title="Moveset"
-        intro={`Name the Pokémon from the moves it learns. You start with ${START_SHOWN}; each miss reveals another. ${MAX_GUESSES} guesses.`}
+        title={t('mode.moveset.title')}
+        intro={t('mv.intro', { start: START_SHOWN, max: MAX_GUESSES })}
         mode={mode}
         onMode={(m) => setMode(m, eligible)}
       />
@@ -60,12 +69,13 @@ function Moveset({ data }: { data: MovesetData }) {
       )}
 
       <section className="mx-auto max-w-xl rounded-2xl bg-white p-4 shadow-lg dark:bg-slate-800 sm:p-6">
-        <h2 className="mb-3 text-center font-pixel text-sm text-slate-500">Which Pokémon learns…</h2>
+        <h2 className="mb-3 text-center font-pixel text-sm text-slate-500">{t('mv.which')}</h2>
         <ol className="space-y-2">
           {moves.map(([slug, learn], i) => {
             const m = data.moves[slug];
             const visible = i < shown;
-            const cls = CLASS_LABEL[m.cls] ?? CLASS_LABEL.status;
+            const clsKey = m.cls in CLASS_ICON ? m.cls : 'status';
+            const clsLabel = t(`mv.cls.${clsKey}` as 'mv.cls.status');
             return (
               <li
                 key={slug}
@@ -81,17 +91,17 @@ function Moveset({ data }: { data: MovesetData }) {
                     <span className="flex-1 font-semibold">{m.name}</span>
                     <span
                       className="w-[4.5rem] shrink-0 rounded bg-slate-200 px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums text-slate-700 dark:bg-slate-700 dark:text-slate-200"
-                      title={typeof learn === 'number' ? (learn === 0 ? 'Learned when it evolves' : `Learned at level ${learn}`) : `Learned by ${learnLabel(learn)}`}
+                      title={typeof learn === 'number' ? (learn === 0 ? t('mv.evolves') : t('mv.atLevel', { n: learn })) : t('mv.by', { how: learnText(t, learn) })}
                     >
-                      {learnLabel(learn)}
+                      {learnText(t, learn)}
                     </span>
                     <TypeBadge type={m.type as PokeType} />
-                    <span className="hidden w-20 text-xs text-slate-500 sm:inline" title={cls.label}>
-                      <span aria-hidden>{cls.icon}</span> {cls.label}
+                    <span className="hidden w-20 text-xs text-slate-500 sm:inline" title={clsLabel}>
+                      <span aria-hidden>{CLASS_ICON[clsKey]}</span> {clsLabel}
                     </span>
                   </>
                 ) : (
-                  <span className="flex-1 text-sm">??? · revealed after a miss</span>
+                  <span className="flex-1 text-sm">{t('mv.hidden')}</span>
                 )}
               </li>
             );
@@ -99,7 +109,7 @@ function Moveset({ data }: { data: MovesetData }) {
         </ol>
         {/* The game would hint at the Pokémon's era, so it's only named once the round is over. */}
         {over && set?.vg != null && data.games[set.vg] && (
-          <p className="mt-3 text-center text-xs text-slate-500">Levels from Pokémon {data.games[set.vg]}</p>
+          <p className="mt-3 text-center text-xs text-slate-500">{t('mv.levelsFrom', { game: data.games[set.vg] })}</p>
         )}
       </section>
 
@@ -108,7 +118,7 @@ function Moveset({ data }: { data: MovesetData }) {
           <PokemonInput onSelect={guess} exclude={guessed} />
           <div className="flex items-center gap-3 py-2.5 text-sm">
             <span className="tabular-nums text-slate-600 dark:text-slate-300">
-              Guess {round.guesses.length + 1} of {MAX_GUESSES}
+              {t('puz.guessOf', { n: round.guesses.length + 1, max: MAX_GUESSES })}
             </span>
             {round.guesses.length > 0 && <GiveUp onConfirm={giveUp} />}
           </div>
@@ -124,12 +134,12 @@ function Moveset({ data }: { data: MovesetData }) {
           <PuzzleResult
             targetId={round.targetId}
             won={won}
-            headline={won ? `Got it in ${round.guesses.length}!` : 'It was…'}
+            headline={won ? t('puz.gotIt', { n: round.guesses.length }) : t('puz.itWas')}
             stats={stats}
             daily={round.mode === 'daily'}
             onNext={() => newUnlimited(eligible)}
             shareText={() =>
-              `Pokewwwww Moveset ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${
+              `Pokewwwww ${t('mode.moveset.title')} ${round.mode === 'daily' ? round.key : t('common.unlimitedKey')} · ${
                 won ? round.guesses.length : 'X'
               }/${MAX_GUESSES}\n${guessRow(misses.length, won)}`
             }

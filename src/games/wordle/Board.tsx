@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { memo } from 'react';
 import { score, type LetterState } from '../../lib/wordle';
 
@@ -18,6 +19,7 @@ const TILE: Record<LetterState, string> = {
 };
 
 const SubmittedRow = memo(function SubmittedRow({ guess, answer }: { guess: string; answer: string }) {
+  const { t } = useT();
   const states = score(guess, answer);
   return (
     <>
@@ -26,7 +28,7 @@ const SubmittedRow = memo(function SubmittedRow({ guess, answer }: { guess: stri
           key={i}
           className={`tile animate-flip ${TILE[states[i]]}`}
           style={{ animationDelay: `${i * 110}ms` }}
-          aria-label={`${ch} ${states[i]}`}
+          aria-label={`${ch} ${t(`wd.state.${states[i]}`)}`}
         >
           {ch}
         </div>
@@ -36,9 +38,10 @@ const SubmittedRow = memo(function SubmittedRow({ guess, answer }: { guess: stri
 });
 
 export default function Board({ length, rows, guesses, answer, current, shake, onShakeEnd }: Props) {
+  const { t } = useT();
   const cols = { gridTemplateColumns: `repeat(${length}, minmax(0, 3.25rem))` };
   return (
-    <div className="flex flex-col items-center gap-1.5" role="grid" aria-label="Guesses">
+    <div className="flex flex-col items-center gap-1.5" role="grid" aria-label={t('wd.guesses')}>
       {Array.from({ length: rows }, (_, r) => {
         const guess = guesses[r];
         const isCurrent = r === guesses.length;

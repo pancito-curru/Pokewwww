@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
+import { useT } from './i18n';
 
 // Each game loads on demand; the home page only needs the shared data.
 const TimedGame = lazy(() => import('./games/timed/TimedGame'));
@@ -12,9 +13,13 @@ const SilhouetteGame = lazy(() => import('./games/identify/SilhouetteGame'));
 const CryGame = lazy(() => import('./games/identify/CryGame'));
 const MovesetGame = lazy(() => import('./games/moveset/MovesetGame'));
 const HangmanGame = lazy(() => import('./games/hangman/HangmanGame'));
+const ShinyGame = lazy(() => import('./games/shiny/ShinyGame'));
 const Contact = lazy(() => import('./pages/Contact'));
 
-const Loading = () => <p className="py-10 text-center text-sm text-slate-500">Loading…</p>;
+const Loading = () => {
+  const { t } = useT();
+  return <p className="py-10 text-center text-sm text-slate-500">{t('app.loading')}</p>;
+};
 
 export default function App() {
   return (
@@ -29,6 +34,7 @@ export default function App() {
         <Route path="cry" element={<Suspense fallback={<Loading />}><CryGame /></Suspense>} />
         <Route path="moveset" element={<Suspense fallback={<Loading />}><MovesetGame /></Suspense>} />
         <Route path="hangman" element={<Suspense fallback={<Loading />}><HangmanGame /></Suspense>} />
+        <Route path="shiny" element={<Suspense fallback={<Loading />}><ShinyGame /></Suspense>} />
         <Route path="contact" element={<Suspense fallback={<Loading />}><Contact /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

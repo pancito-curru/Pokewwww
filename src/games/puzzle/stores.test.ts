@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createPuzzleStore } from './createPuzzleStore';
-import { useHangmanStore, useMovesetStore } from './stores';
+import { useHangmanStore, useMovesetStore, useShinyStore } from './stores';
+import { isShinyCandidate, MAX_MISSES as MAX_SHINY_MISSES } from '../../lib/shiny';
 import { byId } from '../../data';
 import { lettersNeeded } from '../../lib/hangman';
 import { MAX_GUESSES } from '../../lib/moveset';
@@ -75,5 +76,39 @@ describe('hangman store', () => {
     store.getState().giveUp();
     expect(store.getState().daily!.status).toBe('lost');
     expect(store.getState().stats.daily.played).toBe(1);
+  });
+});
+
+describe('shiny store', () => {
+  const s = () => useShinyStore.getState();
+  beforeEach(() => useShinyStore.setState({ mode: 'daily', daily: null, unlimited: null, generations: [] }));
+  const wrongIds = (target: number, n: number) => [1, 4, 7, 10, 13, 16, 19].filter((id) => id !== target).slice(0, n);
+
+  it('wins when the shiny is clicked and buckets by misses', () => {
+    s().ensureRound(isShinyCandidate);
+    const target = s().daily!.targetId;
+    expect(isShinyCandidate(target)).toBe(true);
+    wrongIds(target, 2).forEach((id) => s().guess(id));
+    expect(s().guess(target)).toBe(true);
+    expect(s().daily!.status).toBe('won');
+    expect(s().stats.daily.distribution[2]).toBe(1);
+  });
+
+  it('ignores a repeated pick and loses after the allowed misses', () => {
+    s().ensureRound(isShinyCandidate);
+    const target = s().daily!.targetId;
+    const wrong = wrongIds(target, MAX_SHINY_MISSES);
+    s().guess(wrong[0]);
+    expect(s().guess(wrong[0])).toBe(false);
+    wrong.slice(1).forEach((id) => s().guess(id));
+    expect(s().daily!.status).toBe('lost');
+    expect(s().guess(target)).toBe(false); // round is over
+  });
+
+  it('never picks Minior as the shiny, in either mode', () => {
+    for (let i = 0; i < 30; i++) {
+      s().newUnlimited(isShinyCandidate);
+      expect(s().unlimited!.targetId).not.toBe(774);
+    }
   });
 });

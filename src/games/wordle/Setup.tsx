@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { useEffect, useMemo } from 'react';
 import { POKEDEX, getPool } from '../../data';
 import FilterPanel from '../../components/FilterPanel';
@@ -6,6 +7,7 @@ import { todayKey } from '../../lib/rng';
 import { roundKey, useWordleStore, type WordleMode } from './store';
 
 export default function Setup() {
+  const { t } = useT();
   const { settings, setSettings, play, rounds } = useWordleStore();
   const daily = settings.mode === 'daily';
 
@@ -41,40 +43,39 @@ export default function Setup() {
   const resumeLabel =
     daily && existing?.key === todayKey()
       ? existing.status === 'playing'
-        ? 'Continue'
-        : 'See result'
-      : 'Play';
+        ? t('cw.continue')
+        : t('wd.seeResult')
+      : t('cw.play');
 
   return (
     <section className="space-y-6 rounded-xl bg-white p-6 shadow dark:bg-slate-800/60">
       <header>
-        <h1 className="font-pixel text-xl">Pokédle</h1>
+        <h1 className="font-pixel text-xl">{t('mode.wordle.title')}</h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Guess the Pokémon name letter by letter. Green means right letter, right spot; yellow means it&apos;s
-          somewhere else in the name. Spaces and punctuation are dropped (Mr. Mime → MRMIME).
+          {t('wd.intro')}
         </p>
       </header>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Mode</h2>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('set.mode')}</h2>
         <div className="flex flex-wrap gap-2">
-          {modeBtn('daily', 'Daily')}
-          {modeBtn('unlimited', 'Unlimited')}
+          {modeBtn('daily', t('tab.daily'))}
+          {modeBtn('unlimited', t('mode.unlimited'))}
         </div>
         <p className="mt-2 text-xs text-slate-500">
-          {daily ? 'One name per length per day, from every generation. Same for everyone.' : 'A new random name each time.'}
+          {daily ? t('wd.dailyInfo') : t('wd.unlimitedInfo')}
         </p>
       </div>
 
       {!daily && (
         <div>
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Generations</h2>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('filter.label')}</h2>
           <FilterPanel value={settings.generations} onChange={(generations) => setSettings({ generations })} />
         </div>
       )}
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Letters</h2>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('wd.letters')}</h2>
         <div className="flex flex-wrap gap-2">
           {lengths.map(({ length, pool }) => (
             <button
@@ -85,7 +86,7 @@ export default function Setup() {
               onClick={() => setSettings({ length })}
             >
               <span className="text-lg">{length}</span>
-              <span className="text-[11px] font-normal opacity-80">{pool.length} Pokémon</span>
+              <span className="text-[11px] font-normal opacity-80">{t('wd.pokemonN', { n: pool.length })}</span>
             </button>
           ))}
         </div>
@@ -98,7 +99,7 @@ export default function Setup() {
           checked={settings.strict}
           onChange={(e) => setSettings({ strict: e.target.checked })}
         />
-        Strict: every guess must be a real Pokémon name
+        {t('wd.strict')}
       </label>
 
       <div className="flex justify-end border-t border-slate-200 pt-5 dark:border-slate-700">

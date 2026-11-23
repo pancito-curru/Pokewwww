@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { byId } from '../../data';
 import Keyboard from '../../components/Keyboard';
@@ -18,9 +19,8 @@ export default function WordleGame() {
   return <Game key={`${round.mode}:${round.key}:${round.length}`} round={round} />;
 }
 
-const MESSAGES = { short: 'Not enough letters', invalid: 'Not a Pokémon!' } as const;
-
 function Game({ round }: { round: WordleRound }) {
+  const { t } = useT();
   const { submit, revealHint, toSetup, newUnlimited } = useWordleStore.getState();
   const [current, setCurrent] = useState('');
   const [shake, setShake] = useState(false);
@@ -30,8 +30,8 @@ function Game({ round }: { round: WordleRound }) {
 
   useEffect(() => {
     if (!message) return;
-    const t = setTimeout(() => setMessage(null), 1600);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setMessage(null), 1600);
+    return () => clearTimeout(timer);
   }, [message]);
 
   const onKey = useCallback(
@@ -44,8 +44,9 @@ function Game({ round }: { round: WordleRound }) {
     if (r === 'ok') setCurrent('');
     else {
       setShake(true);
-      setMessage(MESSAGES[r]);
+      setMessage(t(r === 'short' ? 'wd.short' : 'wd.invalid'));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, submit]);
 
   const keys = useMemo(() => keyboardState(round.guesses, round.answer), [round.guesses, round.answer]);
@@ -55,10 +56,10 @@ function Game({ round }: { round: WordleRound }) {
     <div className="space-y-5">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-pixel text-xl">Pokédle</h1>
+          <h1 className="font-pixel text-xl">{t('mode.wordle.title')}</h1>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            {round.mode === 'daily' ? `Daily · ${round.key}` : 'Unlimited'} · {round.length} letters
-            {round.strict ? ' · strict' : ''}
+            {round.mode === 'daily' ? t('cw.dailyKey', { key: round.key }) : t('mode.unlimited')} · {t('wd.lettersN', { n: round.length })}
+            {round.strict ? ` · ${t('wd.strictLc')}` : ''}
           </p>
         </div>
         <div className="flex gap-2">
@@ -67,7 +68,7 @@ function Game({ round }: { round: WordleRound }) {
             onClick={toSetup}
             className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:border-slate-400 dark:border-slate-600"
           >
-            Change length
+            {t('wd.changeLength')}
           </button>
           {round.mode === 'unlimited' && (
             <button
@@ -75,7 +76,7 @@ function Game({ round }: { round: WordleRound }) {
               onClick={newUnlimited}
               className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:border-slate-400 dark:border-slate-600"
             >
-              New word
+              {t('wd.newWord')}
             </button>
           )}
         </div>
@@ -105,7 +106,7 @@ function Game({ round }: { round: WordleRound }) {
         <div className="flex min-h-[2.5rem] flex-wrap items-center justify-center gap-3 text-sm">
           {round.hintUsed ? (
             <span className="flex items-center gap-2">
-              Hint: {target.types.map((t) => <TypeBadge key={t} type={t} />)}
+              {t('hm.hint')} {target.types.map((ty) => <TypeBadge key={ty} type={ty} />)}
             </span>
           ) : (
             <button
@@ -114,11 +115,11 @@ function Game({ round }: { round: WordleRound }) {
               onClick={revealHint}
               className="rounded border border-red-500 px-3 py-1 font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400 dark:text-red-400 dark:hover:bg-red-950/40"
             >
-              Show types (costs a row)
+              {t('wd.showTypes')}
             </button>
           )}
           <span className="text-slate-500">
-            {rowsLeft} {rowsLeft === 1 ? 'guess' : 'guesses'} left
+            {t('wd.left', { count: rowsLeft })}
           </span>
         </div>
       )}
@@ -131,6 +132,7 @@ function Game({ round }: { round: WordleRound }) {
 }
 
 function Result({ round }: { round: WordleRound }) {
+  const { t } = useT();
   const stats = useWordleStore((s) => s.stats[roundKey(round.mode, round.length)]);
   const { newUnlimited, toSetup } = useWordleStore.getState();
   const target = byId.get(round.targetId)!;
@@ -139,9 +141,9 @@ function Result({ round }: { round: WordleRound }) {
   const maxBase = rowsFor(round.length);
 
   const text = () => {
-    const head = `Pokewwwww Pokédle ${round.length} letters ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${
+    const head = `Pokewwwww ${t('mode.wordle.title')} ${t('wd.lettersN', { n: round.length })} ${round.mode === 'daily' ? round.key : t('common.unlimitedKey')} · ${
       won ? `${n}/${round.maxRows}` : `X/${round.maxRows}`
-    }${round.hintUsed ? ' · hint' : ''}`;
+    }${round.hintUsed ? ` · ${t('wd.hintLc')}` : ''}`;
     return `${head}\n${shareGrid(round.guesses, round.answer)}`;
   };
 
@@ -153,12 +155,12 @@ function Result({ round }: { round: WordleRound }) {
       <div className="flex flex-col items-center sm:w-48">
         <Sprite id={target.id} scale={2.5} className="animate-pop" />
         <p className="mt-1 text-sm font-semibold uppercase tracking-wide text-slate-500">
-          {won ? `Got it in ${n}!` : 'It was…'}
+          {won ? t('puz.gotIt', { n }) : t('puz.itWas')}
         </p>
         <h2 className="text-xl font-bold">{target.name}</h2>
         <div className="mt-1 flex gap-1">
-          {target.types.map((t) => (
-            <TypeBadge key={t} type={t} />
+          {target.types.map((ty) => (
+            <TypeBadge key={ty} type={ty} />
           ))}
         </div>
       </div>
@@ -167,10 +169,10 @@ function Result({ round }: { round: WordleRound }) {
         {stats && (
           <dl className="flex gap-5 text-center text-sm">
             {[
-              ['Played', stats.played],
-              ['Win %', stats.played ? Math.round((stats.wins / stats.played) * 100) : 0],
-              ['Streak', stats.streak],
-              ['Best', stats.maxStreak],
+              [t('puz.played'), stats.played],
+              [t('puz.winPct'), stats.played ? Math.round((stats.wins / stats.played) * 100) : 0],
+              [t('puz.streak'), stats.streak],
+              [t('puz.best'), stats.maxStreak],
             ].map(([label, v]) => (
               <div key={label}>
                 <dd className="text-xl font-bold tabular-nums">{v}</dd>
@@ -179,7 +181,7 @@ function Result({ round }: { round: WordleRound }) {
             ))}
           </dl>
         )}
-        <div className="space-y-1" aria-label={`Guess distribution for ${round.length} letters`}>
+        <div className="space-y-1" aria-label={t('wd.distribution', { n: round.length })}>
           {Array.from({ length: maxBase }, (_, i) => i + 1).map((k) => {
             const c = dist[k] ?? 0;
             const mine = won && k === n;
@@ -205,10 +207,10 @@ function Result({ round }: { round: WordleRound }) {
           onClick={newUnlimited}
           className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white shadow hover:bg-red-700"
         >
-          {round.mode === 'daily' ? 'Play unlimited' : 'New word'}
+          {round.mode === 'daily' ? t('puz.playUnlimited') : t('wd.newWord')}
         </button>
         <button type="button" onClick={toSetup} className="text-sm text-slate-500 underline">
-          Try another length
+          {t('wd.tryLength')}
         </button>
       </div>
     </section>

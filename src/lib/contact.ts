@@ -12,25 +12,26 @@ export const CONTACT_ENDPOINT = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
 
 export type ContactKind = 'comment' | 'bug' | 'feature';
 
-export const CONTACT_KINDS: Record<ContactKind, { label: string; hint: string; placeholder: string }> = {
-  comment: {
-    label: 'Comment',
-    hint: 'Anything you want to tell us',
-    placeholder: 'What do you think of Pokewwwww?',
-  },
-  bug: {
-    label: 'Bug report',
-    hint: 'Something broken or wrong',
-    placeholder: 'What happened, and what did you expect? Steps to reproduce help a lot.',
-  },
-  feature: {
-    label: 'Feature suggestion',
-    hint: 'An idea to make it better',
-    placeholder: 'What would you like to see?',
-  },
+/** The label goes into the email subject, so it stays in English whatever the page language. */
+export const CONTACT_KINDS: Record<ContactKind, { label: string }> = {
+  comment: { label: 'Comment' },
+  bug: { label: 'Bug report' },
+  feature: { label: 'Feature suggestion' },
 };
 
-export const CONTACT_AREAS = ['General', "Name 'Em All", "Who's That?", 'Pokédle', 'Pokécross'] as const;
+/** `value` is what the email says (English); `key` is the dictionary entry the form shows. */
+export const CONTACT_AREAS = [
+  { value: 'General', key: 'ct.area.general' },
+  { value: "Name 'Em All", key: 'mode.timed.title' },
+  { value: "Who's That?", key: 'mode.guess.title' },
+  { value: 'Pokédle', key: 'mode.wordle.title' },
+  { value: 'Pokécross', key: 'mode.crossword.title' },
+  { value: 'Silhouettes', key: 'mode.silhouette.title' },
+  { value: 'Cries', key: 'mode.cry.title' },
+  { value: 'Moveset', key: 'mode.moveset.title' },
+  { value: 'Hangman', key: 'mode.hangman.title' },
+  { value: 'Shiny Hunt', key: 'mode.shiny.title' },
+] as const;
 
 export interface ContactForm {
   kind: ContactKind;
@@ -42,13 +43,15 @@ export interface ContactForm {
 
 export const MAX_MESSAGE = 4000;
 
-export function validateContact(f: ContactForm): Partial<Record<keyof ContactForm, string>> {
-  const errors: Partial<Record<keyof ContactForm, string>> = {};
+/** Error codes; the form turns them into text in the current language. */
+export type ContactError = 'short' | 'long' | 'email';
+
+export function validateContact(f: ContactForm): Partial<Record<keyof ContactForm, ContactError>> {
+  const errors: Partial<Record<keyof ContactForm, ContactError>> = {};
   const msg = f.message.trim();
-  if (msg.length < 10) errors.message = 'Please write at least 10 characters.';
-  else if (msg.length > MAX_MESSAGE) errors.message = `Please keep it under ${MAX_MESSAGE} characters.`;
-  if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim()))
-    errors.email = 'That email address doesn’t look right.';
+  if (msg.length < 10) errors.message = 'short';
+  else if (msg.length > MAX_MESSAGE) errors.message = 'long';
+  if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) errors.email = 'email';
   return errors;
 }
 

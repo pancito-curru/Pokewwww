@@ -1,10 +1,11 @@
+import { useT } from '../../i18n';
 import { byId } from '../../data';
 import Sprite from '../../components/Sprite';
-import { HINTS, hintUnlocks, useGuessStore, type GuessRound, type HintKey } from './store';
+import { HINTS, hintUnlocks, useGuessStore, type GuessRound } from './store';
 
-const LABEL: Record<HintKey, string> = { genus: 'Category', flavor: 'Pokédex entry', silhouette: 'Silhouette' };
 
 export default function HintPanel({ round }: { round: GuessRound }) {
+  const { t } = useT();
   const revealHint = useGuessStore((s) => s.revealHint);
   const target = byId.get(round.targetId)!;
   const unlocks = hintUnlocks(round.maxGuesses);
@@ -21,18 +22,18 @@ export default function HintPanel({ round }: { round: GuessRound }) {
             key={h}
             className="flex min-h-[5.5rem] flex-col rounded-lg border border-slate-200 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
           >
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{LABEL[h]}</div>
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{t(`gs.hint.${h}`)}</div>
             {shown ? (
               h === 'genus' ? (
-                <p className="font-semibold">{target.genus || 'Unknown'}</p>
+                <p className="font-semibold">{target.genus || t('gs.unknown')}</p>
               ) : h === 'flavor' ? (
-                <p className="italic text-slate-700 dark:text-slate-300">“{target.flavor || 'No entry'}”</p>
+                <p className="italic text-slate-700 dark:text-slate-300">“{target.flavor || t('gs.noEntry')}”</p>
               ) : (
                 <Sprite id={target.id} scale={1.5} silhouette={!ended} className="self-center" />
               )
             ) : left > 0 ? (
               <p className="text-slate-400">
-                Unlocks in {left} {left === 1 ? 'guess' : 'guesses'}
+                {t('gs.unlocks', { count: left })}
               </p>
             ) : (
               <button
@@ -40,7 +41,7 @@ export default function HintPanel({ round }: { round: GuessRound }) {
                 onClick={() => revealHint(h)}
                 className="mt-auto self-start rounded border border-red-500 px-3 py-1 text-sm font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
               >
-                Reveal hint
+                {t('gs.reveal')}
               </button>
             )}
           </div>

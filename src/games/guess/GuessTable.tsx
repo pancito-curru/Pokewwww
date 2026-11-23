@@ -1,3 +1,4 @@
+import { useT, type TFn } from '../../i18n';
 import { memo, type ReactNode } from 'react';
 import { byId, type Pokemon } from '../../data';
 import Sprite from '../../components/Sprite';
@@ -19,26 +20,18 @@ const STYLE: Record<CellResult, string> = {
 };
 
 const ICON: Record<CellResult, string> = { match: '✓', partial: '~', miss: '✗', higher: '▲', lower: '▼' };
-const SR: Record<CellResult, string> = {
-  match: 'correct',
-  partial: 'right type, wrong slot',
-  miss: 'wrong',
-  higher: 'target is higher',
-  lower: 'target is lower',
-};
 
-const title = (s: string) => s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
-function value(key: ColumnKey, p: Pokemon): ReactNode {
+function value(key: ColumnKey, p: Pokemon, t: TFn): ReactNode {
   switch (key) {
     case 'type1':
-      return title(p.types[0]);
+      return cap(t(`type.${p.types[0]}`));
     case 'type2':
-      return p.types[1] ? title(p.types[1]) : 'None';
+      return p.types[1] ? cap(t(`type.${p.types[1]}`)) : t('gs.none');
     case 'generation':
       return (
         <>
-          Gen {p.generation}
+          {t('filter.gen', { n: p.generation })}
           <span className="block text-[10px] opacity-80">{p.region}</span>
         </>
       );
@@ -49,23 +42,24 @@ function value(key: ColumnKey, p: Pokemon): ReactNode {
             className="mx-auto mb-0.5 block h-3 w-3 rounded-full border border-black/20"
             style={{ background: SWATCH[p.color] ?? 'transparent' }}
           />
-          {title(p.color)}
+          {t(`color.${p.color}` as 'color.red')}
         </>
       );
     case 'shape':
-      return p.shape ? title(p.shape) : '—';
+      return p.shape ? t(`shape.${p.shape}` as 'shape.ball') : '—';
     case 'evoStage':
-      return `Stage ${p.evoStage}`;
+      return t('gs.stage', { n: p.evoStage });
     case 'height':
       return `${p.height} m`;
     case 'weight':
       return `${p.weight} kg`;
     case 'category':
-      return title(p.category);
+      return t(`cat.${p.category}` as 'cat.regular');
   }
 }
 
 const Row = memo(function Row({ guess, target }: { guess: Pokemon; target: Pokemon }) {
+  const { t } = useT();
   const cells = compare(guess, target);
   return (
     <div className={GRID}>
@@ -82,8 +76,8 @@ const Row = memo(function Row({ guess, target }: { guess: Pokemon; target: Pokem
           <span aria-hidden className="absolute right-1 top-0.5 text-[10px] opacity-90">
             {ICON[c.result]}
           </span>
-          <span>{value(c.key, guess)}</span>
-          <span className="sr-only">: {SR[c.result]}</span>
+          <span>{value(c.key, guess, t)}</span>
+          <span className="sr-only">: {t(`gs.sr.${c.result}`)}</span>
         </div>
       ))}
     </div>
@@ -92,15 +86,16 @@ const Row = memo(function Row({ guess, target }: { guess: Pokemon; target: Pokem
 
 /** Guess history, newest on top. */
 export default function GuessTable({ guesses, targetId }: { guesses: number[]; targetId: number }) {
+  const { t } = useT();
   if (!guesses.length) return null;
   const target = byId.get(targetId)!;
   return (
     <div className="-mx-4 overflow-x-auto px-4 pb-2">
       <div className="w-max space-y-1">
         <div className={`${GRID} text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500`}>
-          <div className="text-left">Pokémon</div>
+          <div className="text-left">{t('gs.col.pokemon')}</div>
           {COLUMNS.map((c) => (
-            <div key={c.key}>{c.label}</div>
+            <div key={c.key}>{t(`gs.col.${c.key}`)}</div>
           ))}
         </div>
         {[...guesses].reverse().map((id) => (
@@ -112,6 +107,7 @@ export default function GuessTable({ guesses, targetId }: { guesses: number[]; t
 }
 
 export function Legend() {
+  const { t } = useT();
   const item = (cls: string, icon: string, text: string) => (
     <span className="flex items-center gap-1.5">
       <span className={`inline-flex h-4 w-4 items-center justify-center rounded text-[10px] font-bold ${cls}`}>{icon}</span>
@@ -120,10 +116,12 @@ export function Legend() {
   );
   return (
     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
-      {item(STYLE.match, ICON.match, 'Match')}
-      {item(STYLE.partial, ICON.partial, 'Type is in the other slot')}
-      {item(STYLE.miss, ICON.miss, 'Different')}
-      {item(STYLE.higher, '▲▼', "Target's value is higher / lower")}
+      {item(STYLE.match, ICON.match, t('gs.legend.match'))}
+      {item(STYLE.partial, ICON.partial, t('gs.legend.partial'))}
+      {item(STYLE.miss, ICON.miss, t('gs.legend.miss'))}
+      {item(STYLE.higher, '▲▼', t('gs.legend.higher'))}
     </div>
   );
 }
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

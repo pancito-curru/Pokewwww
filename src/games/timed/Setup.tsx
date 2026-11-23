@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { getPool } from '../../data';
 import FilterPanel from '../../components/FilterPanel';
 import { formatClock, scopeKey } from '../../lib/timed';
@@ -7,6 +8,7 @@ import Switch from '../../components/Switch';
 const DURATIONS: (number | null)[] = [5, 10, 15, 30, null];
 
 export default function Setup() {
+  const { t } = useT();
   const { settings, setSettings, start, best } = useTimedStore();
   const poolSize = getPool({ generations: settings.generations }).length;
   const record = best[scopeKey(settings.generations, settings.duration, settings.easy)];
@@ -21,9 +23,9 @@ export default function Setup() {
   return (
     <section className="space-y-6 rounded-xl bg-white p-6 shadow dark:bg-slate-800/60">
       <header>
-        <h1 className="font-pixel text-xl">Name &apos;Em All</h1>
+        <h1 className="font-pixel text-xl">{t('mode.timed.title')}</h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Type Pokémon names as fast as you can. Correct names count as soon as you finish typing them.
+          {t('tm.intro')}
         </p>
       </header>
 
@@ -31,13 +33,13 @@ export default function Setup() {
         <Switch
           checked={!!settings.easy}
           onChange={(easy) => setSettings({ easy })}
-          label="Easy mode"
-          description="Names with one wrong, missing, extra or swapped letter still count (Charzard → Charizard). Easy-mode scores are kept separately."
+          label={t('tm.easy')}
+          description={t('tm.easyInfo')}
         />
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Timer</h2>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('tm.timer')}</h2>
         <div className="flex flex-wrap gap-2">
           {DURATIONS.map((d) => (
             <button
@@ -47,14 +49,14 @@ export default function Setup() {
               aria-pressed={settings.duration === d}
               onClick={() => setSettings({ duration: d })}
             >
-              {d ? `${d} min` : 'No limit'}
+              {d ? t('status.min', { n: d }) : t('tm.noLimit')}
             </button>
           ))}
         </div>
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Generations</h2>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('filter.label')}</h2>
         <FilterPanel value={settings.generations} onChange={(generations) => setSettings({ generations })} />
       </div>
 
@@ -65,15 +67,15 @@ export default function Setup() {
           checked={settings.silhouettes}
           onChange={(e) => setSettings({ silhouettes: e.target.checked })}
         />
-        Show silhouettes as hints (otherwise only the dex number)
+        {t('tm.silhouettes')}
       </label>
 
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5 dark:border-slate-700">
         <div className="text-sm text-slate-600 dark:text-slate-300">
-          <strong className="text-slate-900 dark:text-white">{poolSize}</strong> Pokémon to find
+          {t('tm.toFind', { n: poolSize })}
           {record && (
             <span className="ml-3">
-              · Best: {record.found}/{record.total} in {formatClock(record.ms)}
+              · {t('tm.best', { found: record.found, total: record.total, time: formatClock(record.ms) })}
             </span>
           )}
         </div>
@@ -82,7 +84,7 @@ export default function Setup() {
           onClick={start}
           className="rounded-lg bg-red-600 px-6 py-2.5 font-semibold text-white shadow hover:bg-red-700"
         >
-          Start
+          {t('tm.start')}
         </button>
       </div>
     </section>

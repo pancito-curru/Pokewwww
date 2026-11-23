@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { memo } from 'react';
 import type { Crossword } from '../../lib/crossword/generator';
 
@@ -38,6 +39,7 @@ const Cell = memo(function Cell({
   solved: boolean;
   onClick: (idx: number) => void;
 }) {
+  const { t } = useT();
   if (solution === null) return <div className="bg-transparent" aria-hidden />;
   const bg = solved
     ? 'bg-emerald-50 dark:bg-emerald-950/50'
@@ -62,7 +64,7 @@ const Cell = memo(function Cell({
       }}
       className={`relative flex aspect-square cursor-pointer select-none items-center justify-center border border-slate-400 font-bold uppercase dark:border-slate-600 ${bg} ${color}`}
       style={{ fontSize: 'clamp(0.7rem, 3.2vw, 1.25rem)' }}
-      aria-label={`${number ? `${number}, ` : ''}${entry || 'empty'}`}
+      aria-label={`${number ? `${number}, ` : ''}${entry || t('cw.empty')}`}
     >
       {number && (
         <span className="absolute left-0.5 top-0 text-[8px] font-semibold leading-none text-slate-500 sm:text-[10px] dark:text-slate-400">
@@ -86,11 +88,12 @@ export default function Grid({
   locked,
   onCellClick,
 }: Props) {
+  const { t } = useT();
   const flat = puzzle.cells.flat();
   return (
     <div
       role="grid"
-      aria-label="Crossword"
+      aria-label={t('cw.gridLabel')}
       className="grid w-full"
       style={{ gridTemplateColumns: `repeat(${puzzle.width}, minmax(0, 1fr))`, maxWidth: `${puzzle.width * 2.6}rem` }}
     >

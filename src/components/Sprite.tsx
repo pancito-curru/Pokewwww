@@ -5,11 +5,13 @@ interface Props {
   id: number;
   scale?: number;
   silhouette?: boolean;
+  /** The shiny variant of the sprite. */
+  shiny?: boolean;
   className?: string;
 }
 
 /** PokéSprite Gen 8 box sprite (68×56), with the PokeAPI sprite as fallback for Gen 9. */
-export default function Sprite({ id, scale = 1, silhouette = false, className = '' }: Props) {
+export default function Sprite({ id, scale = 1, silhouette = false, shiny = false, className = '' }: Props) {
   const p = byId.get(id);
   if (!p) return null;
   return (
@@ -18,7 +20,7 @@ export default function Sprite({ id, scale = 1, silhouette = false, className = 
       style={{ width: 68 * scale, height: 56 * scale }}
     >
       <img
-        src={spriteUrl(p)}
+        src={spriteUrl(p, shiny)}
         alt={silhouette ? 'Unknown Pokémon' : p.name}
         loading="lazy"
         draggable={false}

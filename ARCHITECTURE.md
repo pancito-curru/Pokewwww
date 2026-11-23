@@ -12,7 +12,7 @@ está. El diseño original está en [BLUEPRINT.md](BLUEPRINT.md); el README cubr
 
 ## 1. Qué es
 
-Web de trivia Pokémon, sin fines de lucro, con 8 juegos ("secciones") y una página de contacto.
+Web de trivia Pokémon, sin fines de lucro, con 9 juegos ("secciones") y una página de contacto.
 Todo corre en el navegador: no hay servidor propio ni base de datos. El progreso y las estadísticas
 se guardan en `localStorage` del jugador.
 
@@ -88,8 +88,9 @@ src/
     modes.ts                   registro de juegos (ruta, título, texto, sprites de la tarjeta)
     timed/ guess/ wordle/ crossword/   juegos con store propio
     identify/                  motor de Siluetas y Llantos (daily + contrarreloj)
-    puzzle/                    motor de Moveset y Hangman (daily + ilimitado)
-    moveset/ hangman/          pantallas de esos juegos
+    puzzle/                    motor de Moveset, Hangman y Shiny Hunt (daily + ilimitado)
+    moveset/ hangman/ shiny/   pantallas de esos juegos
+  i18n/                        idioma (EN/ES): hook `useT`, store y diccionarios (`dict/`)
 public/favicon.svg
 BLUEPRINT.md, README.md, ARCHITECTURE.md, CLAUDE.md
 ```
@@ -133,6 +134,7 @@ carpeta fuerza una descarga nueva. Los JSON generados se commitean.
 | Cries | `#/cry` | `games/identify/` (kind `cry`) | `pokewwww-cry` | del día (3 intentos), contrarreloj |
 | Moveset | `#/moveset` | `games/moveset/` + `games/puzzle/` | `pokewwww-moveset` | del día, ilimitado |
 | Hangman | `#/hangman` | `games/hangman/` + `games/puzzle/` | `pokewwww-hangman` | del día, ilimitado |
+| Shiny Hunt | `#/shiny` | `games/shiny/` + `games/puzzle/`, `lib/shiny.ts` | `pokewwww-shiny` | del día, ilimitado (generaciones) |
 | Contacto | `#/contact` | `pages/Contact.tsx`, `lib/contact.ts` | — | formulario → FormSubmit |
 
 Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx` (ruta lazy) y
@@ -158,13 +160,26 @@ Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx`
   e ilimitado, estadísticas y rachas. Se configura con `{ name, addGuess, bucket }`. Lo usan Moveset
   (intentos = ids) y Hangman (intentos = letras). `games/puzzle/Chrome.tsx` aporta `PuzzleHeader`
   (pestañas), `UnlimitedOptions`, `GiveUp`, `PuzzleResult`, `WrongGuesses`, `btnPrimary`, `btnSecondary`.
+- **`games/puzzle/` también sirve a Shiny Hunt**: el "Pokémon oculto" es el que se ve shiny y los intentos son los
+  ids pulsados. El tablero (300 sprites, 1 shiny) no se guarda: se reconstruye con `buildBoard(target, seed, pool)`
+  a partir de la clave de la ronda (`roundSeed`).
 - **`games/identify/`**: "identifica al Pokémon de una pista" con del día (3 intentos) y partida
   contrarreloj (regiones + 1/2/3/5 min, avance automático). `createIdentifyStore(kind)` y `Prompt`
   (tarjeta de silueta o reproductor de llanto). Para un tipo de pista nuevo: añadir un `kind`.
 
+### Idiomas (`src/i18n/`, `src/lib/i18n.ts`)
+- Inglés y español; se elige con el interruptor EN/ES del menú, se guarda en `pokewwww-lang` y por defecto sigue el
+  idioma del navegador. `useT()` devuelve `t(clave, params)` (texto) y `tx(clave, { link: <a/> })` (con nodos React).
+- Los textos viven en `src/i18n/dict/<area>.ts` (`defineArea({ en, es })`: el compilador obliga a que ambos idiomas
+  tengan las mismas claves) y un test comprueba que también coincidan los `{placeholders}`. Plurales: claves
+  `x_one` / `x_other` con el parámetro `count`. Fuera de React: `tFor(lang)`.
+- Se traduce la interfaz, los textos para compartir y las pistas del crucigrama (se regeneran al cambiar de idioma).
+  **No** se traducen los datos de la Pokédex (nombres, categorías, entradas, movimientos): siguen en inglés.
+- El correo del formulario de contacto va siempre en inglés (tipo y área), sea cual sea el idioma de la página.
+
 ### Lógica pura (`src/lib/`)
 `normalize` (nombres, alias) · `search` (ranking del autocompletado) · `rng` (mulberry32,
-`dailySeed`, `todayKey`, `shuffle`, `pick`) · `stats` (`recordResult`, rachas) · `timed`
+`dailySeed`, `todayKey`, `shuffle`, `pick`) · `i18n` (`translate`, `detectLang`) · `shiny` (tablero, reglas) · `stats` (`recordResult`, rachas) · `timed`
 (coincidencias, typos, `formatClock`) · `compare` (tabla de Who's That?) · `wordle` · `crossword/`
 (generador y pistas) · `identify` · `moveset` · `hangman` · `contact`.
 
@@ -181,7 +196,7 @@ Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx`
 - Comentarios solo para explicar el porqué.
 
 **UI**
-- Interfaz en inglés. Marca visible: **Pokewwwww** (prefijo de los textos para compartir).
+- Interfaz en inglés y español (todo texto nuevo va al diccionario de ambos idiomas, nunca fijo en el componente). Marca visible: **Pokewwwww** (prefijo de los textos para compartir).
 - Tailwind con modo oscuro por `prefers-color-scheme` (`dark:`); rojo `red-600` como color principal.
 - Títulos con `font-pixel` (Press Start 2P); el texto normal con la fuente del sistema.
 - Tarjetas `rounded-xl bg-white shadow dark:bg-slate-800/60`; botones `btnPrimary`/`btnSecondary`.
@@ -209,6 +224,9 @@ Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx`
 | PokéSprite fijado a un commit | Las URLs de sprites no cambian bajo una versión publicada |
 | Arte oficial para siluetas, sprites para listas | Siluetas grandes y nítidas; sprites livianos en listas |
 | Sin sprites en el autocompletado de Siluetas | Se podía comparar el sprite con la sombra |
+| Sprites shiny desde PokéSprite/PokeAPI, mismo origen que el normal | Normal y shiny de un Pokémon comparten estilo y tamaño; solo Minior (774) tiene shiny idéntico y se excluye |
+| i18n propio (sin librería) | Dos idiomas y pocas necesidades (parámetros, plurales); una dependencia más no compensa |
+| Datos de la Pokédex solo en inglés | Traducir nombres cambiaría qué se debe teclear en los juegos; requeriría regenerar datos y alias |
 | Movimientos ordenados de comunes a raros | Cada pista nueva es más reveladora |
 | Niveles del juego más reciente con set completo | Hoy suele ser Legends: Z-A; el nombre del juego solo se muestra al final (daría una pista de época) |
 | FormSubmit para el contacto | Sitio estático sin servidor de correo; requiere activación una vez |
@@ -232,8 +250,8 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 ## 11. Estado del proyecto
 
 **Hecho (noviembre de 2026)**
-- 8 juegos publicados, página de contacto, inicio con estado del día por juego, compartir en todos.
-- 133 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
+- 9 juegos publicados, interfaz en inglés y español, página de contacto, inicio con estado del día por juego, compartir en todos.
+- 153 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
 - Auditoría de dependencias sin vulnerabilidades tras subir a Vite 7 / Vitest 4 / React Router 7.
 
 **Limitaciones conocidas**
@@ -242,6 +260,9 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 - La dirección de contacto aparece en el código fuente; FormSubmit ofrece un alias para ocultarla.
 - Algunos niveles de Legends: Z-A parecen raros (p. ej. Volt Tackle a nivel 99); son los datos de PokeAPI.
 - Estadísticas solo locales: no hay cuentas ni rankings.
+- Shiny Hunt: algunos shiny cambian muy poco de color frente al normal (difíciles de ver); no hay temporizador.
+  La URL de la imagen shiny contiene `/shiny/` (visible en las herramientas del navegador).
+- Nombres, categorías, entradas de la Pokédex y movimientos siguen en inglés aunque la interfaz esté en español.
 
 **Siguientes pasos propuestos**
 - Cuentas (email + Google) y rankings por sección con Supabase, idealmente con validación en

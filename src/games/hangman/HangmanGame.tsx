@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react';
+import { useT } from '../../i18n';
 import Keyboard from '../../components/Keyboard';
 import TypeBadge from '../../components/TypeBadge';
 import { byId } from '../../data';
@@ -12,6 +13,7 @@ const HINT_GENUS = 3;
 const HINT_TYPES = 5;
 
 export default function HangmanGame() {
+  const { t } = useT();
   const mode = useHangmanStore((s) => s.mode);
   const round = useHangmanStore((s) => (s.mode === 'daily' ? s.daily : s.unlimited));
   const generations = useHangmanStore((s) => s.generations);
@@ -39,8 +41,8 @@ export default function HangmanGame() {
   return (
     <div className="space-y-5">
       <PuzzleHeader
-        title="Hangman"
-        intro={`Guess the Pokémon's name one letter at a time. ${MAX_MISSES} wrong letters and it's over.`}
+        title={t('mode.hangman.title')}
+        intro={t('hm.intro', { max: MAX_MISSES })}
         mode={mode}
         onMode={(m) => setMode(m)}
       />
@@ -49,9 +51,9 @@ export default function HangmanGame() {
       )}
 
       <section className="mx-auto flex max-w-2xl flex-col items-center gap-5 rounded-2xl bg-white p-5 shadow-lg dark:bg-slate-800 sm:p-8">
-        <Gallows misses={misses} lost={round.status === 'lost'} />
+        <Gallows misses={misses} lost={round.status === 'lost'} label={t('hm.gallows', { n: misses, max: MAX_MISSES })} />
 
-        <div className="flex flex-wrap justify-center gap-1.5" aria-label="The name so far" role="group">
+        <div className="flex flex-wrap justify-center gap-1.5" aria-label={t('hm.nameSoFar')} role="group">
           {slots.map((s, i) =>
             s.ch === ' ' ? (
               <span key={i} className="w-4" aria-hidden />
@@ -65,7 +67,7 @@ export default function HangmanGame() {
                       : 'border-slate-400 text-transparent dark:border-slate-500'
                     : 'border-emerald-500'
                 }`}
-                aria-label={s.hidden && !over ? 'hidden letter' : s.ch}
+                aria-label={s.hidden && !over ? t('hm.hidden') : s.ch}
               >
                 {s.hidden ? (over ? s.ch : '_') : s.ch}
               </span>
@@ -75,7 +77,7 @@ export default function HangmanGame() {
 
         <div className="flex min-h-[2rem] flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
           <span className="tabular-nums text-slate-600 dark:text-slate-300">
-            Misses: <strong className={misses ? 'text-rose-600 dark:text-rose-400' : ''}>{misses}</strong> / {MAX_MISSES}
+            {t('hm.misses')} <strong className={misses ? 'text-rose-600 dark:text-rose-400' : ''}>{misses}</strong> / {MAX_MISSES}
           </span>
           {state.misses.length > 0 && (
             <span className="font-mono tracking-widest text-rose-500 line-through">{state.misses.join(' ')}</span>
@@ -84,11 +86,11 @@ export default function HangmanGame() {
 
         {!over && (misses >= HINT_GENUS || misses >= HINT_TYPES) && (
           <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-            <span className="font-semibold">Hint:</span>
+            <span className="font-semibold">{t('hm.hint')}</span>
             {misses >= HINT_GENUS && <span>{target.genus}</span>}
             {misses >= HINT_TYPES && (
               <>
-                <span>· Gen {target.generation}</span>
+                <span>· {t('filter.gen', { n: target.generation })}</span>
                 {target.types.map((t) => (
                   <TypeBadge key={t} type={t} />
                 ))}
@@ -110,13 +112,13 @@ export default function HangmanGame() {
           <PuzzleResult
             targetId={round.targetId}
             won={won}
-            headline={won ? (misses ? `Solved with ${misses} ${misses === 1 ? 'miss' : 'misses'}` : 'Flawless!') : 'It was…'}
+            headline={won ? (misses ? t('hm.solved', { count: misses }) : t('hm.flawless')) : t('puz.itWas')}
             stats={stats}
             daily={round.mode === 'daily'}
             onNext={() => newUnlimited()}
             shareText={() =>
-              `Pokewwwww Hangman ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${
-                won ? `${misses}/${MAX_MISSES} misses` : 'X'
+              `Pokewwwww ${t('mode.hangman.title')} ${round.mode === 'daily' ? round.key : t('common.unlimitedKey')} · ${
+                won ? t('hm.shareMisses', { n: misses, max: MAX_MISSES }) : 'X'
               }\n${round.guesses.map((l) => (state.misses.includes(l) ? '🟥' : '🟩')).join('')}`
             }
           />
@@ -127,11 +129,11 @@ export default function HangmanGame() {
 }
 
 /** Classic gallows; one body part per miss (head, body, arms, legs). */
-function Gallows({ misses, lost }: { misses: number; lost: boolean }) {
+function Gallows({ misses, lost, label }: { misses: number; lost: boolean; label: string }) {
   const part = (n: number) =>
     `transition-opacity duration-300 ${misses >= n ? 'opacity-100' : 'opacity-0'} ${lost ? 'stroke-rose-500' : 'stroke-current'}`;
   return (
-    <svg viewBox="0 0 120 130" className="h-40 w-36 text-slate-700 dark:text-slate-200" aria-label={`${misses} of ${MAX_MISSES} misses`} role="img">
+    <svg viewBox="0 0 120 130" className="h-40 w-36 text-slate-700 dark:text-slate-200" aria-label={label} role="img">
       <g fill="none" strokeWidth="4" strokeLinecap="round" className="stroke-slate-400 dark:stroke-slate-500">
         <path d="M10 125 H70 M30 125 V8 H85 V22" />
       </g>

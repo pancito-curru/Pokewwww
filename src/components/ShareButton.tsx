@@ -1,7 +1,9 @@
+import { useT } from '../i18n';
 import { useState } from 'react';
 
 /** Copies spoiler-free result text to the clipboard. */
 export default function ShareButton({ text, className = '' }: { text: () => string; className?: string }) {
+  const { t } = useT();
   const [state, setState] = useState<'idle' | 'ok' | 'fail'>('idle');
   const share = async () => {
     try {
@@ -18,7 +20,7 @@ export default function ShareButton({ text, className = '' }: { text: () => stri
       onClick={share}
       className={`rounded-lg border border-slate-300 px-4 py-2 font-semibold hover:border-slate-400 dark:border-slate-600 ${className}`}
     >
-      {state === 'ok' ? 'Copied!' : state === 'fail' ? "Couldn't copy" : 'Share result'}
+      {state === 'ok' ? t('share.ok') : state === 'fail' ? t('share.fail') : t('share.button')}
     </button>
   );
 }

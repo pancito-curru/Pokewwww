@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import FilterPanel from '../../components/FilterPanel';
+import { useT } from '../../i18n';
 import { todayKey } from '../../lib/rng';
 import { formatClock } from '../../lib/timed';
 import type { ClueDifficulty } from '../../lib/crossword/clues';
 import { SIZES, isOver, useCrossStore, type CrossMode, type CrossSize } from './store';
 
-const DIFFICULTY: Record<ClueDifficulty, { label: string; hint: string }> = {
-  easy: { label: 'Easy', hint: 'Types, generation and category, plus a silhouette' },
-  normal: { label: 'Normal', hint: 'Category, region, type or evolution' },
-  hard: { label: 'Hard', hint: 'Pokédex entry only' },
-};
+const DIFFICULTIES: ClueDifficulty[] = ['easy', 'normal', 'hard'];
 
 export default function Setup() {
+  const { t } = useT();
   const { settings, setSettings, play, newUnlimited, daily, unlimited, stats } = useCrossStore();
   const isDaily = settings.mode === 'daily';
 
@@ -32,14 +30,14 @@ export default function Setup() {
   const label = isDaily
     ? daily?.key === todayKey()
       ? daily.solvedAt
-        ? 'See solved puzzle'
+        ? t('cw.seeSolved')
         : isOver(daily)
-          ? 'See puzzle'
-          : 'Continue'
-      : 'Play'
+          ? t('cw.seePuzzle')
+          : t('cw.continue')
+      : t('cw.play')
     : unlimitedInProgress
-      ? 'Continue'
-      : 'New puzzle';
+      ? t('cw.continue')
+      : t('cw.new');
   const [confirmNew, setConfirmNew] = useState(false);
 
   const s = stats[settings.mode];
@@ -47,29 +45,29 @@ export default function Setup() {
   return (
     <section className="space-y-6 rounded-xl bg-white p-6 shadow dark:bg-slate-800/60">
       <header>
-        <h1 className="font-pixel text-xl">Pokécross</h1>
+        <h1 className="font-pixel text-xl">{t('mode.crossword.title')}</h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          A crossword of Pokémon names. Spaces and punctuation are dropped (Mr. Mime → MRMIME).
+          {t('cw.intro')}
         </p>
       </header>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Mode</h2>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('set.mode')}</h2>
         <div className="flex flex-wrap gap-2">
-          {modeBtn('daily', 'Daily')}
-          {modeBtn('unlimited', 'Unlimited')}
+          {modeBtn('daily', t('tab.daily'))}
+          {modeBtn('unlimited', t('mode.unlimited'))}
         </div>
         <p className="mt-2 text-xs text-slate-500">
           {isDaily
-            ? 'One medium puzzle a day with normal clues, from every generation. Same for everyone.'
-            : 'A freshly generated puzzle each time.'}
+            ? t('cw.dailyInfo')
+            : t('cw.unlimitedInfo')}
         </p>
       </div>
 
       {!isDaily && (
         <>
           <div>
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Size</h2>
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('cw.sizeH')}</h2>
             <div className="flex flex-wrap gap-2">
               {(Object.keys(SIZES) as CrossSize[]).map((k) => (
                 <button
@@ -79,18 +77,18 @@ export default function Setup() {
                   aria-pressed={settings.size === k}
                   onClick={() => setSettings({ size: k })}
                 >
-                  {SIZES[k].label}
+                  {t(`cw.size.${k}`)}
                   <span className="text-[11px] font-normal opacity-80">
-                    ~{SIZES[k].words} words · {SIZES[k].maxSize}×{SIZES[k].maxSize}
+                    {t('cw.sizeInfo', { words: SIZES[k].words, n: SIZES[k].maxSize })}
                   </span>
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Clues</h2>
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('cw.cluesH')}</h2>
             <div className="flex flex-wrap gap-2">
-              {(Object.keys(DIFFICULTY) as ClueDifficulty[]).map((k) => (
+              {DIFFICULTIES.map((k) => (
                 <button
                   key={k}
                   type="button"
@@ -98,14 +96,14 @@ export default function Setup() {
                   aria-pressed={settings.difficulty === k}
                   onClick={() => setSettings({ difficulty: k })}
                 >
-                  {DIFFICULTY[k].label}
-                  <span className="text-[11px] font-normal opacity-80">{DIFFICULTY[k].hint}</span>
+                  {t(`cw.diff.${k}`)}
+                  <span className="text-[11px] font-normal opacity-80">{t(`cw.diffHint.${k}`)}</span>
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Generations</h2>
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('filter.label')}</h2>
             <FilterPanel value={settings.generations} onChange={(generations) => setSettings({ generations })} />
           </div>
         </>
@@ -113,12 +111,12 @@ export default function Setup() {
 
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5 dark:border-slate-700">
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Solved: <strong>{s.solved}</strong>
+          {t('cw.solved')} <strong>{s.solved}</strong>
           {(Object.keys(SIZES) as CrossSize[])
             .filter((k) => s.best[k] !== undefined)
             .map((k) => (
               <span key={k} className="ml-3">
-                · Best {SIZES[k].label.toLowerCase()}: {formatClock(s.best[k]!)}
+                · {t('cw.best', { size: t(`cw.size.${k}`).toLowerCase(), time: formatClock(s.best[k]!) })}
               </span>
             ))}
         </p>
@@ -126,20 +124,20 @@ export default function Setup() {
           {unlimitedInProgress &&
             (confirmNew ? (
               <span className="flex items-center gap-2 text-sm">
-                Discard the puzzle in progress?
+                {t('cw.discard')}
                 <button
                   type="button"
                   onClick={newUnlimited}
                   className="rounded bg-red-600 px-2.5 py-1 font-semibold text-white"
                 >
-                  Yes
+                  {t('common.yes')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirmNew(false)}
                   className="rounded border border-slate-300 px-2.5 py-1 dark:border-slate-600"
                 >
-                  No
+                  {t('common.no')}
                 </button>
               </span>
             ) : (
@@ -148,7 +146,7 @@ export default function Setup() {
                 onClick={() => setConfirmNew(true)}
                 className="rounded-lg border border-slate-300 px-4 py-2.5 font-semibold hover:border-slate-400 dark:border-slate-600"
               >
-                New puzzle
+                {t('cw.new')}
               </button>
             ))}
           <button

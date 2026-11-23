@@ -3,6 +3,9 @@ import { generateCrossword, placementCells, type Crossword } from './generator';
 import { buildClues, clueFor } from './clues';
 import { byId, getPool } from '../../data';
 import { mulberry32 } from '../rng';
+import { tFor } from '../../i18n';
+
+const en = tFor('en');
 
 /** Every run of 2+ letters in a row/column must be exactly one placed word. */
 function assertValid(cw: Crossword) {
@@ -77,16 +80,22 @@ describe('generateCrossword', () => {
 describe('clues', () => {
   const rand = mulberry32(1);
   it('easy clues give types, generation and length', () => {
-    expect(clueFor(byId.get(6)!, 'easy', rand)).toBe('Fire/Flying · Gen 1 · Flame Pokémon (9)');
+    expect(clueFor(byId.get(6)!, 'easy', rand, en)).toBe('Fire/Flying · Gen 1 · Flame Pokémon (9)');
   });
   it('hard clues never contain the answer', () => {
     for (const id of [25, 122, 150, 448, 658]) {
       const p = byId.get(id)!;
-      expect(clueFor(p, 'hard', rand).toLowerCase()).not.toContain(p.name.toLowerCase());
+      expect(clueFor(p, 'hard', rand, en).toLowerCase()).not.toContain(p.name.toLowerCase());
     }
   });
   it('fills every clue', () => {
-    const cw = buildClues(generateCrossword(getPool(), { words: 8, maxSize: 11, seed: 5 }), 'normal', 5);
+    const cw = buildClues(generateCrossword(getPool(), { words: 8, maxSize: 11, seed: 5 }), 'normal', 5, en);
     expect(cw.placements.every((p) => p.clue.length > 4)).toBe(true);
+  });
+});
+
+describe('clues in Spanish', () => {
+  it('translate the labels but keep the data', () => {
+    expect(clueFor(byId.get(6)!, 'easy', mulberry32(1), tFor('es'))).toBe('Fuego/Volador · Gen 1 · Flame Pokémon (9)');
   });
 });

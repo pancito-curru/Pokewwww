@@ -4,6 +4,7 @@ import ShareButton from '../../components/ShareButton';
 import Sprite from '../../components/Sprite';
 import TypeBadge from '../../components/TypeBadge';
 import { byId, getPool } from '../../data';
+import { useT } from '../../i18n';
 import type { PuzzleStats } from '../../lib/stats';
 import type { PuzzleMode } from './createPuzzleStore';
 
@@ -23,6 +24,7 @@ export function PuzzleHeader({
   mode: PuzzleMode;
   onMode: (m: PuzzleMode) => void;
 }) {
+  const { t } = useT();
   const tab = (m: PuzzleMode, label: string) => (
     <button
       type="button"
@@ -43,8 +45,8 @@ export function PuzzleHeader({
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{intro}</p>
       </div>
       <div role="tablist" className="flex rounded-lg bg-slate-200 p-1 dark:bg-slate-800">
-        {tab('daily', 'Pokémon of the day')}
-        {tab('unlimited', 'Unlimited')}
+        {tab('daily', t('mode.daily'))}
+        {tab('unlimited', t('mode.unlimited'))}
       </div>
     </header>
   );
@@ -62,18 +64,19 @@ export function UnlimitedOptions({
   onNew: () => void;
   eligible?: (id: number) => boolean;
 }) {
+  const { t } = useT();
   const pool = getPool({ generations });
   const size = eligible ? pool.filter((p) => eligible(p.id)).length : pool.length;
   return (
     <details className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800/60">
-      <summary className="cursor-pointer text-sm font-semibold">Options for the next Pokémon</summary>
+      <summary className="cursor-pointer text-sm font-semibold">{t('puz.options')}</summary>
       <div className="mt-3 space-y-3">
         <FilterPanel value={generations} onChange={onGenerations} />
         <div className="flex items-center gap-3">
           <button type="button" onClick={onNew} className={btnPrimary}>
-            New Pokémon
+            {t('puz.new')}
           </button>
-          <span className="text-xs text-slate-500">{size} possible answers</span>
+          <span className="text-xs text-slate-500">{t('puz.possible', { n: size })}</span>
         </div>
       </div>
     </details>
@@ -81,20 +84,21 @@ export function UnlimitedOptions({
 }
 
 export function GiveUp({ onConfirm }: { onConfirm: () => void }) {
+  const { t } = useT();
   const [confirm, setConfirm] = useState(false);
   return confirm ? (
     <span className="flex items-center gap-2 text-sm">
-      Give up?
+      {t('common.giveUpQ')}
       <button type="button" onClick={onConfirm} className="rounded bg-red-600 px-2.5 py-1 font-semibold text-white">
-        Yes
+        {t('common.yes')}
       </button>
       <button type="button" onClick={() => setConfirm(false)} className={btnSecondary}>
-        No
+        {t('common.no')}
       </button>
     </span>
   ) : (
     <button type="button" onClick={() => setConfirm(true)} className={`${btnSecondary} hover:border-red-500 hover:text-red-600`}>
-      Give up
+      {t('common.giveUp')}
     </button>
   );
 }
@@ -108,6 +112,7 @@ export function PuzzleResult({
   shareText,
   daily,
   onNext,
+  shiny = false,
 }: {
   targetId: number;
   won: boolean;
@@ -116,12 +121,15 @@ export function PuzzleResult({
   shareText: () => string;
   daily: boolean;
   onNext: () => void;
+  /** Show the target's shiny sprite. */
+  shiny?: boolean;
 }) {
+  const { t } = useT();
   const p = byId.get(targetId)!;
   const winPct = stats.played ? Math.round((stats.wins / stats.played) * 100) : 0;
   return (
     <section className="flex flex-col gap-5 rounded-xl bg-white p-5 shadow dark:bg-slate-800/60 sm:flex-row sm:items-center">
-      <Sprite id={p.id} scale={2.5} className="animate-pop self-center" />
+      <Sprite id={p.id} scale={2.5} shiny={shiny} className="animate-pop self-center" />
       <div className="flex-1">
         <p className={`text-sm font-semibold uppercase tracking-wide ${won ? 'text-emerald-600' : 'text-slate-500'}`}>
           {headline}
@@ -137,10 +145,10 @@ export function PuzzleResult({
         </div>
         <dl className="mt-4 flex gap-5 text-center text-sm">
           {[
-            ['Played', stats.played],
-            ['Win %', winPct],
-            ['Streak', stats.streak],
-            ['Best', stats.maxStreak],
+            [t('puz.played'), stats.played],
+            [t('puz.winPct'), winPct],
+            [t('puz.streak'), stats.streak],
+            [t('puz.best'), stats.maxStreak],
           ].map(([label, v]) => (
             <div key={label}>
               <dd className="text-xl font-bold tabular-nums">{v}</dd>
@@ -152,9 +160,9 @@ export function PuzzleResult({
       <div className="flex flex-col gap-2 sm:w-44">
         <ShareButton text={shareText} />
         <button type="button" onClick={onNext} className={btnPrimary}>
-          {daily ? 'Play unlimited' : 'New Pokémon'}
+          {daily ? t('puz.playUnlimited') : t('puz.new')}
         </button>
-        {daily && <p className="text-center text-xs text-slate-500">New Pokémon of the day tomorrow</p>}
+        {daily && <p className="text-center text-xs text-slate-500">{t('puz.tomorrow')}</p>}
       </div>
     </section>
   );

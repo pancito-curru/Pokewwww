@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { byId } from '../../data';
 import Sprite from '../../components/Sprite';
@@ -18,6 +19,7 @@ type Feedback =
   | { kind: 'close'; id: number; found: boolean; at: number };
 
 export default function Play() {
+  const { t } = useT();
   const game = useTimedStore((s) => s.game);
   const find = useTimedStore((s) => s.find);
   const finish = useTimedStore((s) => s.finish);
@@ -105,19 +107,19 @@ export default function Play() {
           <Timer startedAt={game.startedAt} endsAt={game.endsAt} onExpire={onExpire} />
           {easy && (
             <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
-              Easy mode
+              {t('tm.easyBadge')}
             </span>
           )}
           <div className="ml-auto">
             {confirmGiveUp ? (
               <span className="flex items-center gap-2 text-sm">
-                Give up?
+                {t('common.giveUpQ')}
                 <button
                   type="button"
                   className="rounded bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700"
                   onClick={() => finish('gaveUp')}
                 >
-                  Yes
+                  {t('common.yes')}
                 </button>
                 <button
                   type="button"
@@ -127,7 +129,7 @@ export default function Play() {
                     inputRef.current?.focus();
                   }}
                 >
-                  Keep going
+                  {t('tm.keepGoing')}
                 </button>
               </span>
             ) : (
@@ -136,7 +138,7 @@ export default function Play() {
                 className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:border-red-500 hover:text-red-600 dark:border-slate-600"
                 onClick={() => setConfirmGiveUp(true)}
               >
-                Give up
+                {t('common.giveUp')}
               </button>
             )}
           </div>
@@ -154,8 +156,8 @@ export default function Play() {
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck={false}
-            placeholder="Type a Pokémon name…"
-            aria-label="Pokémon name"
+            placeholder={t('input.placeholder')}
+            aria-label={t('input.label')}
             aria-describedby="timed-feedback"
             className={`w-full max-w-sm rounded-lg border bg-white px-4 py-2.5 text-lg outline-none focus:ring-2 dark:bg-slate-800 ${
               feedback?.kind === 'close'
@@ -175,13 +177,14 @@ export default function Play() {
 }
 
 function FeedbackLine({ feedback }: { feedback: Feedback | null }) {
-  if (!feedback) return <span className="text-sm text-slate-500">Esc clears · Enter confirms</span>;
+  const { t } = useT();
+  if (!feedback) return <span className="text-sm text-slate-500">{t('tm.keys')}</span>;
   const p = byId.get(feedback.id)!;
   if (feedback.kind === 'found')
     return (
       <span key={feedback.at} className="flex animate-pop items-center gap-1 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
         <Sprite id={p.id} scale={0.6} /> {p.name}!
-        {feedback.typo && <span className="font-normal text-slate-500 dark:text-slate-400">(spelling fixed)</span>}
+        {feedback.typo && <span className="font-normal text-slate-500 dark:text-slate-400">{t('tm.fixed')}</span>}
       </span>
     );
   if (feedback.kind === 'close')
@@ -192,12 +195,10 @@ function FeedbackLine({ feedback }: { feedback: Feedback | null }) {
         className="inline-flex animate-pop items-center gap-1.5 rounded-md border border-amber-300 bg-amber-100 px-2.5 py-1 text-sm font-medium text-amber-900 dark:border-amber-700 dark:bg-amber-900/40 dark:text-amber-200"
       >
         <span aria-hidden>⚠️</span>
-        {feedback.found
-          ? `Close to ${p.name}, which you already found`
-          : 'So close! One letter off. Check the spelling'}
+        {feedback.found ? t('tm.closeFound', { name: p.name }) : t('tm.close')}
       </span>
     );
   if (feedback.kind === 'already')
-    return <span className="text-sm text-amber-700 dark:text-amber-400">Already found {p.name}</span>;
-  return <span className="text-sm text-slate-500">{p.name} isn&apos;t in this quiz</span>;
+    return <span className="text-sm text-amber-700 dark:text-amber-400">{t('tm.already', { name: p.name })}</span>;
+  return <span className="text-sm text-slate-500">{t('tm.outOfScope', { name: p.name })}</span>;
 }

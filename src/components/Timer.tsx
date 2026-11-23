@@ -1,3 +1,4 @@
+import { useT } from '../i18n';
 import { useEffect, useState } from 'react';
 import { formatClock } from '../lib/timed';
 
@@ -10,6 +11,7 @@ interface Props {
 
 /** Self-ticking clock. Isolated so the rest of the game doesn't re-render every tick. */
 export default function Timer({ startedAt, endsAt, onExpire }: Props) {
+  const { t } = useT();
   const [now, setNow] = useState(Date.now);
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function Timer({ startedAt, endsAt, onExpire }: Props) {
     <span
       className={`font-mono text-2xl font-bold tabular-nums ${low ? 'animate-pulse text-red-600 dark:text-red-400' : ''}`}
       role="timer"
-      aria-label={endsAt != null ? 'Time left' : 'Time elapsed'}
+      aria-label={endsAt != null ? t('timer.left') : t('timer.elapsed')}
     >
       {formatClock(ms)}
     </span>

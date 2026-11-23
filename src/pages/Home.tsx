@@ -12,17 +12,20 @@ import { useWordleStore } from '../games/wordle/store';
 import { useCrossStore } from '../games/crossword/store';
 import { identifyStores } from '../games/identify/store';
 import type { IdentifyKind } from '../games/identify/kinds';
-import { useHangmanStore, useMovesetStore } from '../games/puzzle/stores';
+import { useHangmanStore, useMovesetStore, useShinyStore } from '../games/puzzle/stores';
+
+import { useT, type TFn } from '../i18n';
 
 const DAILY_LENGTHS = availableLengths(POKEDEX).map((l) => l.length);
 
 export default function Home() {
+  const { t } = useT();
   return (
     <>
       <section className="py-6 text-center">
-        <h1 className="font-pixel text-2xl leading-relaxed sm:text-3xl">Pokémon Trivia</h1>
+        <h1 className="font-pixel text-2xl leading-relaxed sm:text-3xl">{t('home.title')}</h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">
-          {MODES.length} ways to test what you know about all {POKEDEX.length} Pokémon.
+          {t('home.subtitle', { modes: MODES.length, total: POKEDEX.length })}
         </p>
       </section>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -39,8 +42,8 @@ export default function Home() {
               ))}
             </div>
             <div>
-              <h2 className="font-pixel text-sm">{m.title}</h2>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{m.blurb}</p>
+              <h2 className="font-pixel text-sm">{t(`mode.${m.id}.title`)}</h2>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{t(`mode.${m.id}.blurb`)}</p>
               <div className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
                 {STATUS[m.path]?.()}
               </div>
@@ -59,57 +62,64 @@ const Pending = ({ children }: { children: ReactNode }) => (
   <span className="font-semibold text-amber-600 dark:text-amber-400">{children}</span>
 );
 
+const streakText = (t: TFn, n: number) => (n ? t('status.streak', { n }) : '');
+
 function TimedStatus() {
+  const { t } = useT();
   const best = useTimedStore((s) => s.best);
   const top = Object.entries(best).sort(([, a], [, b]) => b.found / b.total - a.found / a.total)[0];
-  if (!top) return <>No games yet. How many can you name?</>;
+  if (!top) return <>{t('status.timed.none')}</>;
   const [key, rec] = top;
   const [gens, dur, easy] = key.split('|');
   return (
     <>
-      Best: <strong>{rec.found}/{rec.total}</strong> · {gens === 'all' ? 'all gens' : `Gen ${gens}`} ·{' '}
-      {dur === 'untimed' ? 'no limit' : `${dur} min`}
-      {easy ? ' · easy' : ''}
+      {t('status.timed.best', {
+        found: rec.found,
+        total: rec.total,
+        gens: gens === 'all' ? t('status.allGens') : t('status.gen', { n: gens }),
+        dur: dur === 'untimed' ? t('status.noLimit') : t('status.min', { n: dur }),
+        easy: easy ? t('status.easy') : '',
+      })}
     </>
   );
 }
 
 function GuessStatus() {
+  const { t } = useT();
   const daily = useGuessStore((s) => s.daily);
   const stats = useGuessStore((s) => s.stats.daily);
   const today = daily?.key === todayKey() ? daily : null;
-  const streak = stats.streak ? ` · ${stats.streak}-day streak` : '';
-  if (!today || (today.status === 'playing' && !today.guesses.length)) return <>Today&apos;s daily is waiting{streak}</>;
-  if (today.status === 'playing') {
-    const n = today.guesses.length;
-    return <Pending>Daily in progress · {n} {n === 1 ? 'guess' : 'guesses'} so far</Pending>;
-  }
+  const streak = streakText(t, stats.streak);
+  if (!today || (today.status === 'playing' && !today.guesses.length)) return <>{t('status.dailyWaiting', { extra: streak })}</>;
+  if (today.status === 'playing') return <Pending>{t('status.guess.progress', { count: today.guesses.length })}</Pending>;
   return (
     <>
-      <Done>{today.status === 'won' ? `Daily solved in ${today.guesses.length}` : 'Daily done'}</Done>
+      <Done>{today.status === 'won' ? t('status.dailySolvedIn', { n: today.guesses.length }) : t('status.dailyDone')}</Done>
       {streak}
     </>
   );
 }
 
 function WordleStatus() {
+  const { t } = useT();
   const rounds = useWordleStore((s) => s.rounds);
   const today = todayKey();
   const done = DAILY_LENGTHS.filter((l) => {
     const r = rounds[`daily:${l}`];
     return r?.key === today && r.status !== 'playing';
   }).length;
-  if (!done) return <>{DAILY_LENGTHS.length} dailies today, one per length</>;
-  if (done === DAILY_LENGTHS.length) return <Done>All {done} dailies done today</Done>;
-  return <Pending>{done} of {DAILY_LENGTHS.length} dailies done today</Pending>;
+  if (!done) return <>{t('status.wordle.none', { n: DAILY_LENGTHS.length })}</>;
+  if (done === DAILY_LENGTHS.length) return <Done>{t('status.wordle.all', { n: done })}</Done>;
+  return <Pending>{t('status.wordle.some', { done, n: DAILY_LENGTHS.length })}</Pending>;
 }
 
 function CrossStatus() {
+  const { t } = useT();
   const daily = useCrossStore((s) => s.daily);
-  if (daily?.key !== todayKey()) return <>Today&apos;s daily puzzle is ready</>;
-  if (daily.solvedAt) return <Done>Daily solved in {formatClock(daily.solvedAt - daily.startedAt)}</Done>;
+  if (daily?.key !== todayKey()) return <>{t('status.cross.ready')}</>;
+  if (daily.solvedAt) return <Done>{t('status.cross.solved', { time: formatClock(daily.solvedAt - daily.startedAt) })}</Done>;
   const filled = daily.entries.filter(Boolean).length;
-  return filled ? <Pending>Daily in progress</Pending> : <>Today&apos;s daily puzzle is ready</>;
+  return filled ? <Pending>{t('status.dailyProgress')}</Pending> : <>{t('status.cross.ready')}</>;
 }
 
 const STATUS: Record<string, () => ReactNode> = {
@@ -121,20 +131,22 @@ const STATUS: Record<string, () => ReactNode> = {
   '/cry': () => <IdentifyStatus kind="cry" />,
   '/moveset': () => <MovesetStatus />,
   '/hangman': () => <HangmanStatus />,
+  '/shiny': () => <ShinyStatus />,
 };
 
 function IdentifyStatus({ kind }: { kind: IdentifyKind }) {
+  const { t } = useT();
   const useStore = identifyStores[kind];
   const daily = useStore((s) => s.daily);
   const streak = useStore((s) => s.dailyStats.streak);
   const bestRun = useStore((s) => Math.max(0, ...Object.values(s.best).map((b) => b.correct)));
   const today = daily?.key === todayKey() ? daily.item : null;
-  const extra = `${streak ? ` · ${streak}-day streak` : ''}${bestRun ? ` · best run ${bestRun}` : ''}`;
-  if (!today || (!today.result && !today.wrong.length)) return <>Pokémon of the day is waiting{extra}</>;
-  if (!today.result) return <Pending>Daily in progress · {3 - today.wrong.length} tries left</Pending>;
+  const extra = `${streakText(t, streak)}${bestRun ? t('status.bestRun', { n: bestRun }) : ''}`;
+  if (!today || (!today.result && !today.wrong.length)) return <>{t('status.potdWaiting', { extra })}</>;
+  if (!today.result) return <Pending>{t('status.triesLeft', { n: 3 - today.wrong.length })}</Pending>;
   return (
     <>
-      <Done>{today.result === 'correct' ? `Daily solved in ${today.wrong.length + 1}` : 'Daily done'}</Done>
+      <Done>{today.result === 'correct' ? t('status.dailySolvedIn', { n: today.wrong.length + 1 }) : t('status.dailyDone')}</Done>
       {extra}
     </>
   );
@@ -149,14 +161,15 @@ function PuzzleStatusView({
   streak: number;
   unit: 'guess' | 'miss';
 }) {
+  const { t } = useT();
   const today = daily?.key === todayKey() ? daily : null;
-  const extra = streak ? ` · ${streak}-day streak` : '';
-  if (!today || (today.status === 'playing' && !today.guesses.length)) return <>Pokémon of the day is waiting{extra}</>;
-  if (today.status === 'playing') return <Pending>Daily in progress</Pending>;
+  const extra = streakText(t, streak);
+  if (!today || (today.status === 'playing' && !today.guesses.length)) return <>{t('status.potdWaiting', { extra })}</>;
+  if (today.status === 'playing') return <Pending>{t('status.dailyProgress')}</Pending>;
   const n = unit === 'guess' ? today.guesses.length : null;
   return (
     <>
-      <Done>{today.status === 'won' ? (n ? `Daily solved in ${n}` : 'Daily solved') : 'Daily done'}</Done>
+      <Done>{today.status === 'won' ? (n ? t('status.dailySolvedIn', { n }) : t('status.dailySolved')) : t('status.dailyDone')}</Done>
       {extra}
     </>
   );
@@ -172,4 +185,20 @@ function HangmanStatus() {
   const daily = useHangmanStore((s) => s.daily);
   const streak = useHangmanStore((s) => s.stats.daily.streak);
   return <PuzzleStatusView daily={daily} streak={streak} unit="miss" />;
+}
+
+function ShinyStatus() {
+  const { t } = useT();
+  const daily = useShinyStore((s) => s.daily);
+  const streak = useShinyStore((s) => s.stats.daily.streak);
+  const today = daily?.key === todayKey() ? daily : null;
+  const extra = streakText(t, streak);
+  if (!today || (today.status === 'playing' && !today.guesses.length)) return <>{t('status.dailyWaiting', { extra })}</>;
+  if (today.status === 'playing') return <Pending>{t('status.dailyProgress')}</Pending>;
+  return (
+    <>
+      <Done>{today.status === 'won' ? t('status.dailySolved') : t('status.dailyDone')}</Done>
+      {extra}
+    </>
+  );
 }

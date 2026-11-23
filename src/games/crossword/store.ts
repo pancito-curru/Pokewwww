@@ -2,17 +2,22 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { POKEDEX, getPool } from '../../data';
 import { dailySeed, randomSeed, todayKey } from '../../lib/rng';
+import { tFor, useLang } from '../../i18n';
 import { generateCrossword, placementCells, type Crossword } from '../../lib/crossword/generator';
 import { buildClues, type ClueDifficulty } from '../../lib/crossword/clues';
 
 export type CrossMode = 'daily' | 'unlimited';
 export type CrossSize = 'small' | 'medium' | 'large';
 
-export const SIZES: Record<CrossSize, { words: number; maxSize: number; label: string }> = {
-  small: { words: 8, maxSize: 11, label: 'Small' },
-  medium: { words: 12, maxSize: 13, label: 'Medium' },
-  large: { words: 18, maxSize: 15, label: 'Large' },
+export const SIZES: Record<CrossSize, { words: number; maxSize: number }> = {
+  small: { words: 8, maxSize: 11 },
+  medium: { words: 12, maxSize: 13 },
+  large: { words: 18, maxSize: 15 },
 };
+
+/** The seed a round was generated with, so its clues can be rebuilt in another language. */
+export const roundSeed = (r: { mode: CrossMode; key: string }) =>
+  r.mode === 'daily' ? dailySeed('crossword', new Date(`${r.key}T12:00:00`)) : Number(r.key);
 
 export const DAILY_SETTINGS = { size: 'medium' as CrossSize, difficulty: 'normal' as ClueDifficulty };
 
@@ -68,7 +73,7 @@ function makeRound(s: CrossSettings): CrossRound {
   const seed = daily ? dailySeed('crossword') : randomSeed();
   const { words, maxSize } = SIZES[size];
   const pool = daily ? POKEDEX : getPool({ generations: s.generations });
-  const puzzle = buildClues(generateCrossword(pool, { words, maxSize, seed }), difficulty, seed);
+  const puzzle = buildClues(generateCrossword(pool, { words, maxSize, seed }), difficulty, seed, tFor(useLang.getState().lang));
   return {
     mode: s.mode,
     key: daily ? todayKey() : String(seed),

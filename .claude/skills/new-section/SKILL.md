@@ -81,7 +81,7 @@ Implement in this order so every step can be checked:
    - `src/App.tsx`: `lazy(() => import(...))` + `<Route path="..." element={<Suspense ...>} />`.
    - `src/pages/Home.tsx`: a status line in `STATUS` (today's daily state, streak or best).
    - Share text starts with `Pokewwwww <Title>` and never names the answer.
-6. UI copy in English, brand **Pokewwwww**. Dark mode classes (`dark:`) on everything new.
+6. UI copy in English **and Spanish**: add every string to a dictionary in `src/i18n/dict/` (both `en` and `es`) and use `useT()`; never hard-code text in a component. Share text goes through `t` too. Brand **Pokewwwww**. Dark mode classes (`dark:`) on everything new.
 
 Conventions to keep (details in `ARCHITECTURE.md` §8): strict TypeScript, no `any` in `src/`, logic
 in `lib/`, comments only for the why, results shown with icons as well as color, controls with

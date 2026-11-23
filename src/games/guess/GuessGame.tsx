@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import FilterPanel from '../../components/FilterPanel';
 import PokemonInput from '../../components/PokemonInput';
-import { getPool } from '../../data';
+import { getPool, POKEDEX } from '../../data';
+import { useT } from '../../i18n';
 import { useGuessStore, HARD_MAX_GUESSES, type GuessMode } from './store';
 import GuessTable, { Legend } from './GuessTable';
 import HintPanel from './HintPanel';
 import ResultCard from './ResultCard';
 
 export default function GuessGame() {
+  const { t } = useT();
   const mode = useGuessStore((s) => s.mode);
   const round = useGuessStore((s) => (s.mode === 'daily' ? s.daily : s.unlimited));
   const { setMode, ensureRound, guess, giveUp, newUnlimited } = useGuessStore.getState();
@@ -38,16 +40,18 @@ export default function GuessGame() {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-pixel text-xl">Who&apos;s That?</h1>
+          <h1 className="font-pixel text-xl">{t('mode.guess.title')}</h1>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
             {mode === 'daily'
-              ? 'One Pokémon a day from all 1025, the same for everyone.'
-              : `Random Pokémon from ${round.generations.length ? `Gen ${round.generations.join(', ')}` : 'every generation'}.`}
+              ? t('gs.introDaily', { total: POKEDEX.length })
+              : t('gs.introUnlimited', {
+                  from: round.generations.length ? t('gs.gens', { list: round.generations.join(', ') }) : t('gs.every'),
+                })}
           </p>
         </div>
         <div role="tablist" className="flex rounded-lg bg-slate-200 p-1 dark:bg-slate-800">
-          {tab('daily', 'Daily')}
-          {tab('unlimited', 'Unlimited')}
+          {tab('daily', t('tab.daily'))}
+          {tab('unlimited', t('mode.unlimited'))}
         </div>
       </header>
 
@@ -58,18 +62,19 @@ export default function GuessGame() {
           <PokemonInput onSelect={guess} exclude={guessed} />
           <div className="flex items-center gap-3 py-2.5 text-sm">
             <span className="tabular-nums text-slate-600 dark:text-slate-300">
-              Guess {round.guesses.length + 1}
-              {round.maxGuesses ? ` of ${round.maxGuesses}` : ''}
+              {round.maxGuesses
+                ? t('puz.guessOf', { n: round.guesses.length + 1, max: round.maxGuesses })
+                : t('gs.guessN', { n: round.guesses.length + 1 })}
             </span>
             {round.guesses.length > 0 &&
               (confirmGiveUp ? (
                 <span className="flex items-center gap-2">
-                  Give up?
+                  {t('common.giveUpQ')}
                   <button type="button" onClick={giveUp} className="rounded bg-red-600 px-2.5 py-1 font-semibold text-white">
-                    Yes
+                    {t('common.yes')}
                   </button>
                   <button type="button" onClick={() => setConfirmGiveUp(false)} className="rounded border border-slate-300 px-2.5 py-1 dark:border-slate-600">
-                    No
+                    {t('common.no')}
                   </button>
                 </span>
               ) : (
@@ -78,7 +83,7 @@ export default function GuessGame() {
                   onClick={() => setConfirmGiveUp(true)}
                   className="rounded border border-slate-300 px-2.5 py-1 hover:border-red-500 hover:text-red-600 dark:border-slate-600"
                 >
-                  Give up
+                  {t('common.giveUp')}
                 </button>
               ))}
           </div>
@@ -95,12 +100,13 @@ export default function GuessGame() {
 }
 
 function UnlimitedOptions({ onNew }: { onNew: () => void }) {
+  const { t } = useT();
   const settings = useGuessStore((s) => s.settings);
   const setSettings = useGuessStore((s) => s.setSettings);
   const size = getPool({ generations: settings.generations }).length;
   return (
     <details className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800/60">
-      <summary className="cursor-pointer text-sm font-semibold">Options for the next Pokémon</summary>
+      <summary className="cursor-pointer text-sm font-semibold">{t('puz.options')}</summary>
       <div className="mt-3 space-y-3">
         <FilterPanel value={settings.generations} onChange={(generations) => setSettings({ generations })} />
         <label className="flex cursor-pointer items-center gap-3 text-sm">
@@ -110,7 +116,7 @@ function UnlimitedOptions({ onNew }: { onNew: () => void }) {
             checked={settings.hard}
             onChange={(e) => setSettings({ hard: e.target.checked })}
           />
-          Hard mode: {HARD_MAX_GUESSES} guesses max
+          {t('gs.hard', { max: HARD_MAX_GUESSES })}
         </label>
         <div className="flex items-center gap-3">
           <button
@@ -118,9 +124,9 @@ function UnlimitedOptions({ onNew }: { onNew: () => void }) {
             onClick={onNew}
             className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
           >
-            New Pokémon
+            {t('puz.new')}
           </button>
-          <span className="text-xs text-slate-500">{size} possible answers. Guesses can be any Pokémon.</span>
+          <span className="text-xs text-slate-500">{t('gs.possible', { n: size })}</span>
         </div>
       </div>
     </details>

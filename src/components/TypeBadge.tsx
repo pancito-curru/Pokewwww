@@ -1,3 +1,4 @@
+import { useT } from '../i18n';
 import type { PokeType } from '../data';
 
 // Full class names so Tailwind's content scanner picks them up.
@@ -10,12 +11,13 @@ const BG: Record<PokeType, string> = {
 };
 
 export default function TypeBadge({ type }: { type: PokeType }) {
+  const { t } = useT();
   return (
     <span
       className={`${BG[type]} inline-block rounded px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white`}
       style={{ textShadow: '0 1px 1px rgb(0 0 0 / 0.5)' }}
     >
-      {type}
+      {t(`type.${type}`)}
     </span>
   );
 }

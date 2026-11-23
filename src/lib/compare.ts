@@ -1,4 +1,5 @@
 import type { Pokemon } from '../data';
+import { tFor, type TFn } from '../i18n';
 
 /** higher / lower = the target's value is higher / lower than the guess. */
 export type CellResult = 'match' | 'partial' | 'miss' | 'higher' | 'lower';
@@ -66,10 +67,11 @@ export function shareText(opts: {
   target: Pokemon;
   won: boolean;
   hintsUsed: number;
+  t?: TFn;
 }): string {
-  const { title, guesses, target, won, hintsUsed } = opts;
-  const head = `${title} · ${won ? `${guesses.length} ${guesses.length === 1 ? 'guess' : 'guesses'}` : 'X'}${
-    hintsUsed ? ` · ${hintsUsed} ${hintsUsed === 1 ? 'hint' : 'hints'}` : ''
+  const { title, guesses, target, won, hintsUsed, t = tFor('en') } = opts;
+  const head = `${title} · ${won ? t('gs.shareGuesses', { count: guesses.length }) : 'X'}${
+    hintsUsed ? ` · ${t('gs.shareHints', { count: hintsUsed })}` : ''
   }`;
   const rows = guesses.map((g) => compare(g, target).map((c) => EMOJI[c.result]).join(''));
   return [head, ...rows].join('\n');

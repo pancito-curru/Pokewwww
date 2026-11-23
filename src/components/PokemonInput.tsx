@@ -1,3 +1,4 @@
+import { useT } from '../i18n';
 import { useId, useMemo, useRef, useState } from 'react';
 import { findByInput } from '../data';
 import { searchPokemon } from '../lib/search';
@@ -21,10 +22,11 @@ export default function PokemonInput({
   onSelect,
   exclude = NONE,
   disabled = false,
-  placeholder = 'Type a Pokémon name…',
+  placeholder,
   autoFocus = true,
   showSprites = true,
 }: Props) {
+  const { t } = useT();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -54,10 +56,10 @@ export default function PokemonInput({
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const exact = findByInput(query);
-      if (exact && exclude.has(exact.id)) setError(`You already guessed ${exact.name}`);
+      if (exact && exclude.has(exact.id)) setError(t('input.already', { name: exact.name }));
       else if (exact) choose(exact.id);
       else if (results[active]) choose(results[active].id);
-      else if (query.trim()) setError('No Pokémon by that name');
+      else if (query.trim()) setError(t('input.none'));
     } else if (e.key === 'Escape') {
       setOpen(false);
     }
@@ -81,7 +83,7 @@ export default function PokemonInput({
         onKeyDown={onKeyDown}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('input.placeholder')}
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
@@ -91,7 +93,7 @@ export default function PokemonInput({
         aria-controls={listId}
         aria-autocomplete="list"
         aria-activedescendant={showList ? `${listId}-${active}` : undefined}
-        aria-label="Pokémon name"
+        aria-label={t('input.label')}
         className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-lg outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/30 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800"
       />
       {error && <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">{error}</p>}

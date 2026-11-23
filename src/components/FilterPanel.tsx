@@ -1,3 +1,4 @@
+import { useT } from '../i18n';
 import { GENERATIONS, REGIONS, getPool } from '../data';
 
 interface Props {
@@ -17,6 +18,7 @@ const chip = (on: boolean) =>
 
 /** Generation picker shared by every mode. */
 export default function FilterPanel({ value, onChange }: Props) {
+  const { t } = useT();
   const all = value.length === 0;
   const toggle = (g: number) => {
     const next = value.includes(g) ? value.filter((x) => x !== g) : [...value, g].sort((a, b) => a - b);
@@ -24,16 +26,16 @@ export default function FilterPanel({ value, onChange }: Props) {
   };
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Generations">
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t('filter.label')}>
       <button type="button" className={chip(all)} aria-pressed={all} onClick={() => onChange([])}>
-        <span className="font-semibold">All</span>
+        <span className="font-semibold">{t('filter.all')}</span>
         <span className="ml-2 opacity-75">{getPool().length}</span>
       </button>
       {GENERATIONS.map((g) => {
         const on = value.includes(g);
         return (
           <button key={g} type="button" className={chip(on)} aria-pressed={on} onClick={() => toggle(g)}>
-            <span className="font-semibold">Gen {g}</span>
+            <span className="font-semibold">{t('filter.gen', { n: g })}</span>
             <span className="ml-1.5 opacity-75">
               {REGIONS[g]} · {counts.get(g)}
             </span>

@@ -4,7 +4,9 @@ import Timer from '../../components/Timer';
 import { todayKey } from '../../lib/rng';
 import { formatClock } from '../../lib/timed';
 import { placementCells, type Dir } from '../../lib/crossword/generator';
-import { SIZES, isOver, useCrossStore, type CrossRound } from './store';
+import { isOver, roundSeed, useCrossStore, type CrossRound } from './store';
+import { buildClues } from '../../lib/crossword/clues';
+import { useT } from '../../i18n';
 import Setup from './Setup';
 import Grid from './Grid';
 import ClueList from './ClueList';
@@ -24,7 +26,11 @@ interface Cursor {
 
 function Game({ round }: { round: CrossRound }) {
   const { setEntry, revealWord, reset, endPuzzle, toSetup, newUnlimited } = useCrossStore.getState();
-  const { puzzle, entries } = round;
+  const { t, lang } = useT();
+  const { puzzle: stored, entries } = round;
+  // Clues are text in the current language, so they are rebuilt from the round's seed when it changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const puzzle = useMemo(() => buildClues(stored, round.difficulty, roundSeed(round), t), [stored, round.difficulty, round.mode, round.key, lang]);
   const { width, height, placements } = puzzle;
   const solved = round.solvedAt !== null;
   const over = isOver(round);
@@ -162,7 +168,7 @@ function Game({ round }: { round: CrossRound }) {
   const check = () => {
     const bad = new Set(entries.map((e, i) => (e && e !== solution[i] ? i : -1)).filter((i) => i >= 0));
     setWrong(bad);
-    setCheckMsg(bad.size ? `${bad.size} wrong ${bad.size === 1 ? 'letter' : 'letters'}` : 'Everything so far is correct');
+    setCheckMsg(bad.size ? t('cw.wrong', { count: bad.size }) : t('cw.allCorrect'));
     focus();
   };
 
@@ -175,10 +181,11 @@ function Game({ round }: { round: CrossRound }) {
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-pixel text-xl">Pokécross</h1>
+          <h1 className="font-pixel text-xl">{t('mode.crossword.title')}</h1>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            {round.mode === 'daily' ? `Daily · ${round.key}` : 'Unlimited'} · {SIZES[round.size].label} ·{' '}
-            {round.difficulty} clues · {placements.length} words
+            {round.mode === 'daily' ? t('cw.dailyKey', { key: round.key }) : t('mode.unlimited')} ·{' '}
+            {t(`cw.size.${round.size}`)} · {t('cw.cluesInfo', { level: t(`cw.diff.${round.difficulty}`).toLowerCase() })} ·{' '}
+            {t('cw.wordsN', { n: placements.length })}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -190,7 +197,7 @@ function Game({ round }: { round: CrossRound }) {
             <Timer startedAt={round.startedAt} endsAt={null} />
           )}
           <button type="button" className={btn} onClick={toSetup}>
-            Options
+            {t('cw.options')}
           </button>
         </div>
       </header>
@@ -198,21 +205,17 @@ function Game({ round }: { round: CrossRound }) {
       {solved && (
         <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-emerald-50 p-4 dark:bg-emerald-950/40">
           <div>
-            <p className="font-pixel text-sm text-emerald-700 dark:text-emerald-300">Solved!</p>
+            <p className="font-pixel text-sm text-emerald-700 dark:text-emerald-300">{t('cw.solvedBang')}</p>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
               {formatClock(round.solvedAt! - round.startedAt)}
-              {round.revealed.length
-                ? ` · ${round.revealed.length} ${round.revealed.length === 1 ? 'letter' : 'letters'} revealed`
-                : ' · no reveals'}
+              {round.revealed.length ? ` · ${t('cw.revealedN', { count: round.revealed.length })}` : ` · ${t('cw.noReveals')}`}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <ShareButton
               text={() =>
-                `Pokewwwww Pokécross ${round.mode === 'daily' ? round.key : '(unlimited)'} · ${SIZES[round.size].label} · ${
-                  round.difficulty
-                } clues\n✅ ${placements.length} words in ${formatClock(round.solvedAt! - round.startedAt)}${
-                  round.revealed.length ? ` · ${round.revealed.length} letters revealed` : ' · no reveals'
+                `Pokewwwww ${t('mode.crossword.title')} ${round.mode === 'daily' ? round.key : t('common.unlimitedKey')} · ${t(`cw.size.${round.size}`)} · ${t('cw.cluesInfo', { level: t(`cw.diff.${round.difficulty}`).toLowerCase() })}\n✅ ${t('cw.shareLine', { n: placements.length, time: formatClock(round.solvedAt! - round.startedAt) })}${
+                  round.revealed.length ? ` · ${t('cw.revealedN', { count: round.revealed.length })}` : ` · ${t('cw.noReveals')}`
                 }`
               }
             />
@@ -221,7 +224,7 @@ function Game({ round }: { round: CrossRound }) {
               onClick={newUnlimited}
               className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white shadow hover:bg-red-700"
             >
-              {round.mode === 'daily' ? 'Play unlimited' : 'New puzzle'}
+              {round.mode === 'daily' ? t('puz.playUnlimited') : t('cw.new')}
             </button>
           </div>
         </section>
@@ -230,22 +233,22 @@ function Game({ round }: { round: CrossRound }) {
       {ended && (
         <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-200/70 p-4 dark:bg-slate-800">
           <div>
-            <p className="font-pixel text-sm">Puzzle ended</p>
+            <p className="font-pixel text-sm">{t('cw.ended')}</p>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-              The answers are filled in; the ones you didn&apos;t get are in blue.
-              {round.mode === 'daily' ? ' A new daily puzzle comes tomorrow.' : ''}
+              {t('cw.endedInfo')}
+              {round.mode === 'daily' ? ` ${t('cw.endedDaily')}` : ''}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" className={btn} onClick={toSetup}>
-              Change options
+              {t('cw.changeOptions')}
             </button>
             <button
               type="button"
               onClick={newUnlimited}
               className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white shadow hover:bg-red-700"
             >
-              {round.mode === 'daily' ? 'Play unlimited' : 'New puzzle'}
+              {round.mode === 'daily' ? t('puz.playUnlimited') : t('cw.new')}
             </button>
           </div>
         </section>
@@ -257,7 +260,7 @@ function Game({ round }: { round: CrossRound }) {
             <div className="sticky top-0 z-10 -mx-4 bg-slate-100/95 px-4 py-2 backdrop-blur dark:bg-slate-900/95 lg:static lg:mx-0 lg:rounded-lg lg:bg-amber-100 lg:dark:bg-amber-900/40">
               <p className="text-sm">
                 <strong>
-                  {active.number} {active.dir === 'across' ? 'Across' : 'Down'}
+                  {active.number} {active.dir === 'across' ? t('cw.across') : t('cw.down')}
                 </strong>{' '}
                 · {active.clue}
               </p>
@@ -267,7 +270,7 @@ function Game({ round }: { round: CrossRound }) {
           <div className="relative">
             <input
               ref={inputRef}
-              aria-label="Crossword letter input"
+              aria-label={t('cw.letterInput')}
               autoFocus
               autoComplete="off"
               autoCorrect="off"
@@ -294,7 +297,7 @@ function Game({ round }: { round: CrossRound }) {
           {!over && (
             <div className="flex flex-wrap items-center gap-2">
               <button type="button" className={btn} onClick={check} disabled={!filled}>
-                Check
+                {t('cw.check')}
               </button>
               <button
                 type="button"
@@ -304,11 +307,11 @@ function Game({ round }: { round: CrossRound }) {
                   focus();
                 }}
               >
-                Reveal word
+                {t('cw.revealWord')}
               </button>
               {confirm ? (
-                <span className="flex items-center gap-2 text-sm" role="group" aria-label="Confirm">
-                  {confirm === 'reset' ? 'Clear every letter?' : 'Show the answers and end this puzzle?'}
+                <span className="flex items-center gap-2 text-sm" role="group" aria-label={t('cw.confirm')}>
+                  {confirm === 'reset' ? t('cw.confirmReset') : t('cw.confirmEnd')}
                   <button
                     type="button"
                     className="rounded bg-red-600 px-2.5 py-1 font-semibold text-white"
@@ -321,7 +324,7 @@ function Game({ round }: { round: CrossRound }) {
                       setConfirm(null);
                     }}
                   >
-                    Yes
+                    {t('common.yes')}
                   </button>
                   <button
                     type="button"
@@ -331,31 +334,30 @@ function Game({ round }: { round: CrossRound }) {
                       focus();
                     }}
                   >
-                    No
+                    {t('common.no')}
                   </button>
                 </span>
               ) : (
                 <>
                   <button type="button" className={btn} onClick={() => setConfirm('reset')} disabled={!filled}>
-                    Reset
+                    {t('cw.reset')}
                   </button>
                   <button
                     type="button"
                     className={`${btn} hover:border-red-500 hover:text-red-600`}
                     onClick={() => setConfirm('end')}
                   >
-                    End puzzle
+                    {t('cw.endPuzzle')}
                   </button>
                 </>
               )}
               <span className="ml-auto text-sm tabular-nums text-slate-500">
-                {checkMsg ?? `${filled} / ${total} letters`}
+                {checkMsg ?? t('cw.lettersCount', { filled, total })}
               </span>
             </div>
           )}
           <p className="hidden text-xs text-slate-500 sm:block">
-            Click a square to select it; click again to switch direction. Arrows move, Tab jumps to the next clue,
-            Space switches direction.
+            {t('cw.help')}
           </p>
         </div>
 

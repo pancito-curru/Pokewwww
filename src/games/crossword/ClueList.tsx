@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { useEffect, useRef } from 'react';
 import Sprite from '../../components/Sprite';
 import type { Dir, Placement } from '../../lib/crossword/generator';
@@ -11,11 +12,12 @@ interface Props {
 }
 
 export default function ClueList({ placements, activeId, solvedIds, showSilhouettes, onSelect }: Props) {
+  const { t } = useT();
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
       {(['across', 'down'] as Dir[]).map((dir) => (
         <section key={dir}>
-          <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500">{dir}</h2>
+          <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500">{t(dir === 'across' ? 'cw.across' : 'cw.down')}</h2>
           <ol className="space-y-0.5">
             {placements
               .filter((p) => p.dir === dir)
@@ -49,6 +51,7 @@ function ClueItem({
   showSilhouette: boolean;
   onSelect: (id: number) => void;
 }) {
+  const { t } = useT();
   const ref = useRef<HTMLLIElement>(null);
   useEffect(() => {
     if (active) ref.current?.scrollIntoView({ block: 'nearest' });
@@ -68,7 +71,7 @@ function ClueItem({
         {solved ? (
           <span className="flex shrink-0 items-center">
             <Sprite id={p.pokemonId} scale={0.5} />
-            <span className="text-emerald-600" aria-label="solved">✓</span>
+            <span className="text-emerald-600" aria-label={t('cw.solvedLabel')}>✓</span>
           </span>
         ) : (
           showSilhouette && <Sprite id={p.pokemonId} scale={0.5} silhouette className="shrink-0 opacity-70" />
