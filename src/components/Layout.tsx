@@ -25,22 +25,24 @@ export default function Layout() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4">
-      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-5">
-        <Link to="/" className="font-pixel text-lg tracking-tight text-red-600 dark:text-red-400">
-          Pokewwwww
-        </Link>
+      <header className="space-y-3 py-5">
+        <div className="flex items-center justify-between gap-4">
+          <Link to="/" className="font-pixel text-lg tracking-tight text-red-600 dark:text-red-400">
+            Pokewwwww
+          </Link>
+          <div className="flex items-center gap-2 text-sm">
+            <NavLink to="/contact" className={navClass}>
+              {t('nav.contact')}
+            </NavLink>
+            <LangSwitch />
+          </div>
+        </div>
         <nav aria-label={t('nav.main')} className="-mx-1 flex flex-wrap items-center gap-1 text-sm">
           {MODES.map((m) => (
             <NavLink key={m.path} to={m.path} className={navClass}>
               {t(`mode.${m.id}.title`)}
             </NavLink>
           ))}
-          <span className="mx-1 hidden h-4 w-px bg-slate-300 sm:block dark:bg-slate-700" aria-hidden />
-          <NavLink to="/contact" className={navClass}>
-            {t('nav.contact')}
-          </NavLink>
-          <span className="mx-1 hidden h-4 w-px bg-slate-300 sm:block dark:bg-slate-700" aria-hidden />
-          <LangSwitch />
         </nav>
       </header>
       <main className="flex-1 pb-10">
