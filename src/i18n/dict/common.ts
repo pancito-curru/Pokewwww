@@ -34,6 +34,8 @@ export const common = defineArea({
     'mode.shiny.title': 'Shiny Hunt',
     'mode.gps.title': 'PokeGPS',
     'mode.gps.blurb': 'Name the Pokémon from where it appears in the wild, or explore a map and find everyone who lives there.',
+    'mode.item.title': 'Item Sprites',
+    'mode.item.blurb': 'Name the item from its tiny pixel sprite: Poké Balls, potions, berries, held items and more.',
     'mode.shiny.blurb': 'Hundreds of the same Pokémon, but only one is shiny. Can you spot it?',
 
     'status.streak': ' · {n}-day streak',
@@ -123,6 +125,8 @@ export const common = defineArea({
     'mode.shiny.title': 'Caza Shiny',
     'mode.gps.title': 'PokeGPS',
     'mode.gps.blurb': 'Nombra al Pokémon por dónde aparece en estado salvaje, o explora un mapa y encuentra a todos los que viven allí.',
+    'mode.item.title': 'Sprites de objetos',
+    'mode.item.blurb': 'Nombra el objeto por su pequeño sprite: Poké Balls, pociones, bayas, objetos equipables y más.',
     'mode.shiny.blurb': 'Cientos del mismo Pokémon, pero solo uno es shiny. ¿Puedes encontrarlo?',
 
     'status.streak': ' · racha de {n} días',

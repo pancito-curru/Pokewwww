@@ -1,9 +1,11 @@
 export interface GameMode {
   path: string;
   /** Titles and blurbs live in the dictionaries as `mode.<id>.title` / `mode.<id>.blurb`. */
-  id: 'timed' | 'guess' | 'wordle' | 'crossword' | 'silhouette' | 'cry' | 'moveset' | 'hangman' | 'shiny' | 'gps';
+  id: 'timed' | 'guess' | 'wordle' | 'crossword' | 'silhouette' | 'cry' | 'moveset' | 'hangman' | 'shiny' | 'gps' | 'item';
   /** Dex numbers shown as the card's sprite collage. */
   sprites: number[];
+  /** Item sprite slugs for the card instead of Pokémon (item game). */
+  itemSprites?: string[];
 }
 
 export const MODES: GameMode[] = [
@@ -17,4 +19,5 @@ export const MODES: GameMode[] = [
   { path: '/hangman', id: 'hangman', sprites: [425, 355, 354] },
   { path: '/shiny', id: 'shiny', sprites: [6, 130, 25] },
   { path: '/gps', id: 'gps', sprites: [41, 129, 16] },
+  { path: '/item', id: 'item', sprites: [], itemSprites: ['poke-ball', 'potion', 'rare-candy'] },
 ];

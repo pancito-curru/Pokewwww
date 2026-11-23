@@ -32,6 +32,7 @@ export const CONTACT_AREAS = [
   { value: 'Hangman', key: 'mode.hangman.title' },
   { value: 'Shiny Hunt', key: 'mode.shiny.title' },
   { value: 'PokeGPS', key: 'mode.gps.title' },
+  { value: 'Item Sprites', key: 'mode.item.title' },
 ] as const;
 
 export interface ContactForm {

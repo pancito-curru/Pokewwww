@@ -15,3 +15,6 @@ export const artworkUrl = (id: number) => `${POKEAPI_SPRITES}/other/official-art
 
 /** The Pokémon's cry (Ogg Vorbis) from PokeAPI's cries repo. "latest" exists for all 1025. */
 export const cryUrl = (id: number) => `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`;
+
+/** An item's sprite (PokeAPI's sprite repo), by its slug. Small (~30px), meant to be shown pixelated. */
+export const itemSpriteUrl = (slug: string) => `${POKEAPI_SPRITES.replace(/pokemon$/, '')}items/${slug}.png`;

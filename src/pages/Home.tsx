@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MODES } from '../games/modes';
 import { POKEDEX } from '../data';
 import Sprite from '../components/Sprite';
+import ItemSprite from '../components/ItemSprite';
 import { todayKey } from '../lib/rng';
 import { formatClock } from '../lib/timed';
 import { availableLengths } from '../lib/wordle';
@@ -14,6 +15,7 @@ import { identifyStores } from '../games/identify/store';
 import type { IdentifyKind } from '../games/identify/kinds';
 import { useGpsStore, useHangmanStore, useMovesetStore, useShinyStore } from '../games/puzzle/stores';
 import { useExploreStore } from '../games/gps/exploreStore';
+import { useItemStore } from '../games/items/store';
 
 import { useT, type TFn } from '../i18n';
 
@@ -40,6 +42,9 @@ export default function Home() {
             <div className="flex flex-1 items-center justify-center gap-2 py-3">
               {m.sprites.map((id) => (
                 <Sprite key={id} id={id} scale={1.25} />
+              ))}
+              {m.itemSprites?.map((slug) => (
+                <ItemSprite key={slug} slug={slug} size={68} />
               ))}
             </div>
             <div>
@@ -134,6 +139,7 @@ const STATUS: Record<string, () => ReactNode> = {
   '/hangman': () => <HangmanStatus />,
   '/shiny': () => <ShinyStatus />,
   '/gps': () => <GpsStatus />,
+  '/item': () => <ItemStatus />,
 };
 
 function IdentifyStatus({ kind }: { kind: IdentifyKind }) {
@@ -213,6 +219,22 @@ function GpsStatus() {
   const mapsText = maps ? ` · ${t('status.gpsMaps', { count: maps })}` : '';
   const today = daily?.key === todayKey() ? daily : null;
   const extra = `${streakText(t, streak)}${mapsText}`;
+  if (!today || (today.status === 'playing' && !today.guesses.length)) return <>{t('status.potdWaiting', { extra })}</>;
+  if (today.status === 'playing') return <Pending>{t('status.dailyProgress')}</Pending>;
+  return (
+    <>
+      <Done>{today.status === 'won' ? t('status.dailySolvedIn', { n: today.guesses.length }) : t('status.dailyDone')}</Done>
+      {extra}
+    </>
+  );
+}
+
+function ItemStatus() {
+  const { t } = useT();
+  const daily = useItemStore((s) => s.daily);
+  const streak = useItemStore((s) => s.stats.daily.streak);
+  const today = daily?.key === todayKey() ? daily : null;
+  const extra = streakText(t, streak);
   if (!today || (today.status === 'playing' && !today.guesses.length)) return <>{t('status.potdWaiting', { extra })}</>;
   if (today.status === 'playing') return <Pending>{t('status.dailyProgress')}</Pending>;
   return (

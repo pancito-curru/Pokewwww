@@ -12,7 +12,7 @@ está. El diseño original está en [BLUEPRINT.md](BLUEPRINT.md); el README cubr
 
 ## 1. Qué es
 
-Web de trivia Pokémon, sin fines de lucro, con 10 juegos ("secciones") y una página de contacto.
+Web de trivia Pokémon, sin fines de lucro, con 11 juegos ("secciones") y una página de contacto.
 Todo corre en el navegador: no hay servidor propio ni base de datos. El progreso y las estadísticas
 se guardan en `localStorage` del jugador.
 
@@ -73,6 +73,7 @@ scripts/
   build-pokedex.ts             → src/data/pokedex.json   (npm run data)
   build-movesets.ts            → src/data/movesets.json  (npm run data:moves)
   build-locations.ts           → src/data/locations.json (npm run data:locations)
+  build-items.ts               → src/data/items.json     (npm run data:items)
   analyze-gps.ts               cuántas respuestas encajan con cada pista de PokeGPS (npx tsx)
 src/
   main.tsx, App.tsx            arranque y rutas (lazy por juego)
@@ -92,6 +93,7 @@ src/
     identify/                  motor de Siluetas y Llantos (daily + contrarreloj)
     puzzle/                    motor de Moveset, Hangman y Shiny Hunt (daily + ilimitado)
     moveset/ hangman/ shiny/   pantallas de esos juegos
+    items/                     Item Sprites (store propio: el objeto es un id de objeto, no de Pokémon)
     gps/                       PokeGPS: acertijo (motor puzzle) + exploración de mapas (store propio)
   i18n/                        idioma (EN/ES): hook `useT`, store y diccionarios (`dict/`)
 public/favicon.svg
@@ -116,6 +118,13 @@ nombre tapado por `_____`).
 `/pokemon/{id}/encounters`, con las áreas agrupadas por lugar; solo lugares con región. 846 de 1025 Pokémon tienen
 encuentros salvajes (los evolucionados, iniciales, legendarios… no) y **ninguno de Gen 9**: PokeAPI no tiene encuentros
 de Paldea. Se carga con `import()` dentro del juego (~170 kB, 39 kB gzip).
+
+### `items.json` (`lib/items.ts`: `ItemData`, `parseItems`)
+`{ pockets, categories: [nombre, bolsillo][], items: [id, slug, nombreEn, nombreEs, categoría, efecto][] }`. Sale de
+`/item` de PokeAPI; el sprite es `PokeAPI/sprites/sprites/items/<slug>.png` (`itemSpriteUrl`). Se excluyen las máquinas
+(MT/MO/DT: el sprite solo muestra el tipo del movimiento), los "unused" y **todo objeto cuyo sprite sea idéntico al de otro**
+(cristales Dynamax, caramelos de especie, tarjetas de datos…), comprobado por hash al generar: quedan ~1000 objetos.
+Se carga con `import()` dentro del juego (~100 kB, 30 kB gzip).
 
 ### `movesets.json` (`lib/moveset.ts`: `MovesetData`)
 `{ moves: {slug: {name, type, cls}}, games: {vgId: "Scarlet & Violet"}, sets: {id: {vg, moves: [[slug, learn]]}} }`.
@@ -144,6 +153,7 @@ carpeta fuerza una descarga nueva. Los JSON generados se commitean.
 | Moveset | `#/moveset` | `games/moveset/` + `games/puzzle/` | `pokewwww-moveset` | del día, ilimitado |
 | Hangman | `#/hangman` | `games/hangman/` + `games/puzzle/` | `pokewwww-hangman` | del día, ilimitado |
 | PokeGPS | `#/gps`, `#/gps/map` | `games/gps/` + `games/puzzle/`, `lib/gps.ts` | `pokewwww-gps`, `pokewwww-gpsmap` | del día, ilimitado, explorar (región) |
+| Item Sprites | `#/item` | `games/items/`, `lib/items.ts` | `pokewwww-items` | del día, ilimitado (tipo de objeto) |
 | Shiny Hunt | `#/shiny` | `games/shiny/` + `games/puzzle/`, `lib/shiny.ts` | `pokewwww-shiny` | del día, ilimitado (generación del Pokémon) |
 | Contacto | `#/contact` | `pages/Contact.tsx`, `lib/contact.ts` | — | formulario → FormSubmit |
 
@@ -173,6 +183,11 @@ Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx`
 - **`games/puzzle/` también sirve a Shiny Hunt**: el "Pokémon oculto" es el que se repite 300 veces en el tablero (299
   normales + 1 shiny) y los intentos son las posiciones pulsadas. La posición del shiny no se guarda: sale de
   `shinyIndex(roundSeed(ronda))`.
+- **Item Sprites (`games/items/`)**: no usa `createPuzzleStore` porque este asume Pokémon (`byId`, generaciones); su store
+  tiene la misma forma (del día / ilimitado, estadísticas) pero con ids de objeto y bolsillos como filtro. El del día solo
+  sale de bolsillos y categorías conocidas (`dailyPool`); el ilimitado ofrece todo, incluidos objetos clave y cartas. Cada
+  fallo desbloquea una pista (tipo, nº de letras, efecto sin el nombre, primera letra); 5 fallos. Los nombres se aceptan en
+  inglés y español (los objetos sí tienen nombre en español en PokeAPI). El autocompletado no muestra sprites.
 - **PokeGPS (`games/gps/`)**: el acertijo reutiliza `createPuzzleStore` (`useGpsStore`, 6 fallos, entrada de la Pokédex tras
   4). Como una pista puede encajar con varios Pokémon, `buildClue` añade etapa evolutiva, generación y rango de nivel solo
   cuando otro Pokémon encaja con tipo + lugares, y `fits` acepta cualquiera que encaje con todo lo mostrado (la
@@ -265,8 +280,8 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 ## 11. Estado del proyecto
 
 **Hecho (noviembre de 2026)**
-- 10 juegos publicados, interfaz en inglés y español, página de contacto, inicio con estado del día por juego, compartir en todos.
-- 173 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
+- 11 juegos publicados, interfaz en inglés y español, página de contacto, inicio con estado del día por juego, compartir en todos.
+- 194 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
 - Auditoría de dependencias sin vulnerabilidades tras subir a Vite 7 / Vitest 4 / React Router 7.
 
 **Limitaciones conocidas**
@@ -275,6 +290,7 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 - La dirección de contacto aparece en el código fuente; FormSubmit ofrece un alias para ocultarla.
 - Algunos niveles de Legends: Z-A parecen raros (p. ej. Volt Tackle a nivel 99); son los datos de PokeAPI.
 - Estadísticas solo locales: no hay cuentas ni rankings.
+- Item Sprites: sprites de 30 px ampliados sin suavizar; efectos y categorías en inglés; ~790 objetos tienen efecto.
 - PokeGPS: sin Pokémon de Gen 9 (ni Paldea) por falta de datos en PokeAPI; los nombres de lugares están en inglés. Con
   tipo + lugares, ~15 % de las pistas las cumplen varios Pokémon (de ahí los datos extra); con ellos quedan como mucho 2
   respuestas válidas.

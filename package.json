@@ -10,7 +10,8 @@
     "test": "vitest run",
     "data": "tsx scripts/build-pokedex.ts",
     "data:moves": "tsx scripts/build-movesets.ts",
-    "data:locations": "tsx scripts/build-locations.ts"
+    "data:locations": "tsx scripts/build-locations.ts",
+    "data:items": "tsx scripts/build-items.ts"
   },
   "dependencies": {
     "react": "18.3.1",
