@@ -12,7 +12,7 @@ A Pokémon trivia web app with eight game modes:
 | **Cries** | `#/cry` | Name a Pokémon from its cry: Pokémon of the day (3 tries) or a timed run by region |
 | **Moveset** | `#/moveset` | Name a Pokémon from the moves it learns; each miss reveals another move |
 | **Hangman** | `#/hangman` | Guess a Pokémon name letter by letter; 6 misses allowed |
-| **Shiny Hunt** | `#/shiny` | Spot the one shiny sprite hidden among 299 regular ones; 5 wrong picks allowed |
+| **Shiny Hunt** | `#/shiny` | Spot the one shiny among 299 regular copies of the same Pokémon; 5 wrong picks allowed |
 
 Who's That?, Pokédle, Pokécross, Moveset, Hangman and Shiny Hunt also have a daily puzzle (the same for everyone) and an unlimited mode. There is also a contact page (`#/contact`).
 

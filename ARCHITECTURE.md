@@ -134,7 +134,7 @@ carpeta fuerza una descarga nueva. Los JSON generados se commitean.
 | Cries | `#/cry` | `games/identify/` (kind `cry`) | `pokewwww-cry` | del día (3 intentos), contrarreloj |
 | Moveset | `#/moveset` | `games/moveset/` + `games/puzzle/` | `pokewwww-moveset` | del día, ilimitado |
 | Hangman | `#/hangman` | `games/hangman/` + `games/puzzle/` | `pokewwww-hangman` | del día, ilimitado |
-| Shiny Hunt | `#/shiny` | `games/shiny/` + `games/puzzle/`, `lib/shiny.ts` | `pokewwww-shiny` | del día, ilimitado (generaciones) |
+| Shiny Hunt | `#/shiny` | `games/shiny/` + `games/puzzle/`, `lib/shiny.ts` | `pokewwww-shiny` | del día, ilimitado (generación del Pokémon) |
 | Contacto | `#/contact` | `pages/Contact.tsx`, `lib/contact.ts` | — | formulario → FormSubmit |
 
 Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx` (ruta lazy) y
@@ -160,9 +160,9 @@ Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx`
   e ilimitado, estadísticas y rachas. Se configura con `{ name, addGuess, bucket }`. Lo usan Moveset
   (intentos = ids) y Hangman (intentos = letras). `games/puzzle/Chrome.tsx` aporta `PuzzleHeader`
   (pestañas), `UnlimitedOptions`, `GiveUp`, `PuzzleResult`, `WrongGuesses`, `btnPrimary`, `btnSecondary`.
-- **`games/puzzle/` también sirve a Shiny Hunt**: el "Pokémon oculto" es el que se ve shiny y los intentos son los
-  ids pulsados. El tablero (300 sprites, 1 shiny) no se guarda: se reconstruye con `buildBoard(target, seed, pool)`
-  a partir de la clave de la ronda (`roundSeed`).
+- **`games/puzzle/` también sirve a Shiny Hunt**: el "Pokémon oculto" es el que se repite 300 veces en el tablero (299
+  normales + 1 shiny) y los intentos son las posiciones pulsadas. La posición del shiny no se guarda: sale de
+  `shinyIndex(roundSeed(ronda))`.
 - **`games/identify/`**: "identifica al Pokémon de una pista" con del día (3 intentos) y partida
   contrarreloj (regiones + 1/2/3/5 min, avance automático). `createIdentifyStore(kind)` y `Prompt`
   (tarjeta de silueta o reproductor de llanto). Para un tipo de pista nuevo: añadir un `kind`.

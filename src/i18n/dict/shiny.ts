@@ -2,9 +2,8 @@ import { defineArea } from '../define';
 
 export const shiny = defineArea({
   en: {
-    'sh.intro': 'One shiny is hiding among {total} Pokémon. Click it! {max} wrong picks and it’s over.',
-    'sh.sprites': '{n} sprites',
-    'sh.notShiny': '{name} is not shiny',
+    'sh.intro': '{total} copies of {name}, but only one is shiny. Click it! {max} wrong picks and it’s over.',
+    'sh.notShiny': 'Not the shiny',
     'sh.board': 'Pokémon sprites',
     'sh.cell': 'Sprite {n}',
     'sh.found_one': 'Found it after {count} miss!',
@@ -13,9 +12,8 @@ export const shiny = defineArea({
     'sh.itWas': 'The shiny was…',
   },
   es: {
-    'sh.intro': 'Un shiny se esconde entre {total} Pokémon. ¡Haz clic en él! {max} fallos y pierdes.',
-    'sh.sprites': '{n} sprites',
-    'sh.notShiny': '{name} no es shiny',
+    'sh.intro': '{total} copias de {name}, pero solo una es shiny. ¡Haz clic en ella! {max} fallos y pierdes.',
+    'sh.notShiny': 'No es el shiny',
     'sh.board': 'Sprites de Pokémon',
     'sh.cell': 'Sprite {n}',
     'sh.found_one': '¡Lo encontraste tras {count} fallo!',

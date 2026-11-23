@@ -1,8 +1,8 @@
 import { memo, useEffect, useMemo, useRef } from 'react';
 import Sprite from '../../components/Sprite';
-import { byId, getPool, POKEDEX } from '../../data';
+import { byId } from '../../data';
 import { useT } from '../../i18n';
-import { BOARD_SIZE, MAX_MISSES, buildBoard, evaluate, isShinyCandidate, pickRow, roundSeed } from '../../lib/shiny';
+import { BOARD_SIZE, MAX_MISSES, evaluate, isShinyCandidate, pickRow, roundSeed, shinyIndex } from '../../lib/shiny';
 import { useShinyStore } from '../puzzle/stores';
 import { GiveUp, PuzzleHeader, PuzzleResult, UnlimitedOptions } from '../puzzle/Chrome';
 
@@ -25,11 +25,8 @@ export default function ShinyGame() {
 
   useEffect(() => ensureRound(isShinyCandidate), [mode, ensureRound]);
 
-  const board = useMemo(() => {
-    if (!round) return [];
-    const pool = round.mode === 'daily' ? POKEDEX : getPool({ generations: round.generations });
-    return buildBoard(round.targetId, roundSeed(round), pool);
-  }, [round?.mode, round?.key, round?.targetId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Every cell is the same Pokémon; the round's seed decides which one is shiny.
+  const shiny = useMemo(() => (round ? shinyIndex(roundSeed(round)) : -1), [round?.mode, round?.key]); // eslint-disable-line react-hooks/exhaustive-deps
   const picked = useMemo(() => new Set(round?.guesses), [round?.guesses]);
   const targetRef = useRef<HTMLButtonElement>(null);
 
@@ -40,15 +37,18 @@ export default function ShinyGame() {
   }, [over, round?.key]);
 
   if (!round) return null;
-  const { misses } = evaluate(round.guesses, round.targetId);
+  const { misses } = evaluate(round.guesses, shiny);
   const won = round.status === 'won';
-  const last = round.guesses.length ? byId.get(round.guesses[round.guesses.length - 1])! : null;
 
   return (
     <div className="space-y-5">
       <PuzzleHeader
         title={t('mode.shiny.title')}
-        intro={t('sh.intro', { total: BOARD_SIZE, max: MAX_MISSES })}
+        intro={
+          round
+            ? t('sh.intro', { name: byId.get(round.targetId)!.name, total: BOARD_SIZE, max: MAX_MISSES })
+            : ''
+        }
         mode={mode}
         onMode={(m) => setMode(m, isShinyCandidate)}
       />
@@ -65,9 +65,8 @@ export default function ShinyGame() {
         <span className="tabular-nums" aria-live="polite">
           {t('hm.misses')} <strong className={misses ? 'text-rose-600 dark:text-rose-400' : ''}>{misses}</strong> / {MAX_MISSES}
         </span>
-        <span className="text-slate-500">{t('sh.sprites', { n: board.length })}</span>
         <span className="min-h-[1.25rem] text-slate-600 dark:text-slate-300" aria-live="polite">
-          {!over && last && `✗ ${t('sh.notShiny', { name: last.name })}`}
+          {!over && round.guesses.length > 0 && `✗ ${t('sh.notShiny')}`}
         </span>
         {!over && round.guesses.length > 0 && (
           <div className="ml-auto">
@@ -79,22 +78,22 @@ export default function ShinyGame() {
       <div
         role="group"
         aria-label={t('sh.board')}
-        className="grid grid-cols-[repeat(auto-fill,minmax(60px,1fr))] gap-1.5"
+        className="grid grid-cols-[repeat(auto-fill,minmax(76px,1fr))] gap-1.5"
       >
-        {board.map((id, i) => {
-          const isTarget = id === round.targetId;
-          const state: CellState = isTarget && over ? (won ? 'found' : 'revealed') : picked.has(id) ? 'wrong' : 'idle';
+        {Array.from({ length: BOARD_SIZE }, (_, i) => {
+          const isShiny = i === shiny;
+          const state: CellState = isShiny && over ? (won ? 'found' : 'revealed') : picked.has(i) ? 'wrong' : 'idle';
           return (
             <Cell
-              key={id}
-              id={id}
+              key={i}
+              id={round.targetId}
               index={i}
               state={state}
-              // The shiny is the only sprite loaded from the shiny folder, and nothing else tells them apart.
-              shiny={isTarget}
-              disabled={over || picked.has(id)}
+              // The shiny is the only sprite loaded from the shiny folder.
+              shiny={isShiny}
+              disabled={over || picked.has(i)}
               onPick={guess}
-              refCb={isTarget ? targetRef : undefined}
+              refCb={isShiny ? targetRef : undefined}
             />
           );
         })}
@@ -136,24 +135,22 @@ const Cell = memo(function Cell({
   state: CellState;
   shiny: boolean;
   disabled: boolean;
-  onPick: (id: number) => void;
+  onPick: (index: number) => void;
   refCb?: React.RefObject<HTMLButtonElement>;
 }) {
   const { t } = useT();
-  const p = byId.get(id)!;
-  // The name is only exposed once the sprite has been picked or the round is over.
-  const known = state !== 'idle';
   return (
     <button
       ref={refCb}
       type="button"
       disabled={disabled}
-      onClick={() => onPick(id)}
-      aria-label={known ? `${p.name}${state === 'wrong' ? ` ✗` : ' ✨'}` : t('sh.cell', { n: index + 1 })}
-      title={known ? p.name : undefined}
-      className={`relative flex h-[64px] items-center justify-center rounded-md border transition disabled:cursor-default ${CELL[state]}`}
+      onClick={() => onPick(index)}
+      aria-label={
+        state === 'wrong' ? `${t('sh.cell', { n: index + 1 })} ✗` : state === 'idle' ? t('sh.cell', { n: index + 1 }) : `${t('sh.cell', { n: index + 1 })} ✨`
+      }
+      className={`relative flex h-[72px] items-center justify-center rounded-md border transition disabled:cursor-default ${CELL[state]}`}
     >
-      <Sprite id={id} scale={1} shiny={shiny} className={state === 'wrong' ? 'opacity-40 grayscale' : ''} />
+      <Sprite id={id} scale={1.2} shiny={shiny} className={state === 'wrong' ? 'opacity-40 grayscale' : ''} />
       {state === 'wrong' && (
         <span aria-hidden className="absolute inset-0 flex items-center justify-center text-xl font-bold text-rose-600">
           ✗

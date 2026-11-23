@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createPuzzleStore } from './createPuzzleStore';
 import { useHangmanStore, useMovesetStore, useShinyStore } from './stores';
-import { isShinyCandidate, MAX_MISSES as MAX_SHINY_MISSES } from '../../lib/shiny';
+import { isShinyCandidate, MAX_MISSES as MAX_SHINY_MISSES, roundSeed, shinyIndex } from '../../lib/shiny';
 import { byId } from '../../data';
 import { lettersNeeded } from '../../lib/hangman';
 import { MAX_GUESSES } from '../../lib/moveset';
@@ -82,33 +82,35 @@ describe('hangman store', () => {
 describe('shiny store', () => {
   const s = () => useShinyStore.getState();
   beforeEach(() => useShinyStore.setState({ mode: 'daily', daily: null, unlimited: null, generations: [] }));
-  const wrongIds = (target: number, n: number) => [1, 4, 7, 10, 13, 16, 19].filter((id) => id !== target).slice(0, n);
+  const spot = () => shinyIndex(roundSeed(s().daily!));
+  const wrongSpots = (shiny: number, n: number) => [0, 1, 2, 3, 4, 5, 6].filter((i) => i !== shiny).slice(0, n);
 
-  it('wins when the shiny is clicked and buckets by misses', () => {
+  it('wins when the shiny position is clicked and buckets by misses', () => {
     s().ensureRound(isShinyCandidate);
-    const target = s().daily!.targetId;
-    expect(isShinyCandidate(target)).toBe(true);
-    wrongIds(target, 2).forEach((id) => s().guess(id));
-    expect(s().guess(target)).toBe(true);
+    expect(isShinyCandidate(s().daily!.targetId)).toBe(true);
+    wrongSpots(spot(), 2).forEach((i) => s().guess(i));
+    expect(s().guess(spot())).toBe(true);
     expect(s().daily!.status).toBe('won');
     expect(s().stats.daily.distribution[2]).toBe(1);
   });
 
   it('ignores a repeated pick and loses after the allowed misses', () => {
     s().ensureRound(isShinyCandidate);
-    const target = s().daily!.targetId;
-    const wrong = wrongIds(target, MAX_SHINY_MISSES);
+    const wrong = wrongSpots(spot(), MAX_SHINY_MISSES);
     s().guess(wrong[0]);
     expect(s().guess(wrong[0])).toBe(false);
-    wrong.slice(1).forEach((id) => s().guess(id));
+    wrong.slice(1).forEach((i) => s().guess(i));
     expect(s().daily!.status).toBe('lost');
-    expect(s().guess(target)).toBe(false); // round is over
+    expect(s().guess(spot())).toBe(false); // round is over
   });
 
-  it('never picks Minior as the shiny, in either mode', () => {
+  it('never picks Minior, and respects the generation filter in unlimited', () => {
+    useShinyStore.setState({ generations: [7] });
     for (let i = 0; i < 30; i++) {
       s().newUnlimited(isShinyCandidate);
-      expect(s().unlimited!.targetId).not.toBe(774);
+      const id = s().unlimited!.targetId;
+      expect(id).not.toBe(774);
+      expect(byId.get(id)!.generation).toBe(7);
     }
   });
 });
