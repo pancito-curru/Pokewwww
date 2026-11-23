@@ -12,7 +12,7 @@ está. El diseño original está en [BLUEPRINT.md](BLUEPRINT.md); el README cubr
 
 ## 1. Qué es
 
-Web de trivia Pokémon, sin fines de lucro, con 11 juegos ("secciones") y una página de contacto.
+Web de trivia Pokémon, sin fines de lucro, con 12 juegos ("secciones") y una página de contacto.
 Todo corre en el navegador: no hay servidor propio ni base de datos. El progreso y las estadísticas
 se guardan en `localStorage` del jugador.
 
@@ -91,8 +91,8 @@ src/
     modes.ts                   registro de juegos (ruta, título, texto, sprites de la tarjeta)
     timed/ guess/ wordle/ crossword/   juegos con store propio
     identify/                  motor de Siluetas y Llantos (daily + contrarreloj)
-    puzzle/                    motor de Moveset, Hangman y Shiny Hunt (daily + ilimitado)
-    moveset/ hangman/ shiny/   pantallas de esos juegos
+    puzzle/                    motor de Moveset, Hangman, Shiny Hunt, PokeGPS y PokeIndex (daily + ilimitado)
+    moveset/ hangman/ shiny/ pokeindex/   pantallas de esos juegos
     items/                     Item Sprites (store propio: el objeto es un id de objeto, no de Pokémon)
     gps/                       PokeGPS: acertijo (motor puzzle) + exploración de mapas (store propio)
   i18n/                        idioma (EN/ES): hook `useT`, store y diccionarios (`dict/`)
@@ -153,6 +153,7 @@ carpeta fuerza una descarga nueva. Los JSON generados se commitean.
 | Moveset | `#/moveset` | `games/moveset/` + `games/puzzle/` | `pokewwww-moveset` | del día, ilimitado |
 | Hangman | `#/hangman` | `games/hangman/` + `games/puzzle/` | `pokewwww-hangman` | del día, ilimitado |
 | PokeGPS | `#/gps`, `#/gps/map` | `games/gps/` + `games/puzzle/`, `lib/gps.ts` | `pokewwww-gps`, `pokewwww-gpsmap` | del día, ilimitado, explorar (región) |
+| PokeIndex | `#/pokeindex` | `games/pokeindex/` + `games/puzzle/`, `lib/pokeindex.ts` | `pokewwww-pokeindex` | del día, ilimitado (generaciones) |
 | Item Sprites | `#/item` | `games/items/`, `lib/items.ts` | `pokewwww-items` | del día, ilimitado (tipo de objeto) |
 | Shiny Hunt | `#/shiny` | `games/shiny/` + `games/puzzle/`, `lib/shiny.ts` | `pokewwww-shiny` | del día, ilimitado (generación del Pokémon) |
 | Contacto | `#/contact` | `pages/Contact.tsx`, `lib/contact.ts` | — | formulario → FormSubmit |
@@ -183,6 +184,10 @@ Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx`
 - **`games/puzzle/` también sirve a Shiny Hunt**: el "Pokémon oculto" es el que se repite 300 veces en el tablero (299
   normales + 1 shiny) y los intentos son las posiciones pulsadas. La posición del shiny no se guarda: sale de
   `shinyIndex(roundSeed(ronda))`.
+- **PokeIndex (`games/pokeindex/`)**: `createPuzzleStore` con 6 fallos. Se ve el número de la Pokédex; cada fallo desbloquea
+  una pista (1.º generación y región, 2.º tipos, 3.º silueta; la silueta va tarde a propósito porque casi regala la
+  respuesta) y cada intento fallido indica con ▲/▼ si el número de la respuesta es mayor o menor. Los umbrales están en
+  `lib/pokeindex.ts` (`HINT_*`, `MAX_GUESSES`).
 - **Item Sprites (`games/items/`)**: no usa `createPuzzleStore` porque este asume Pokémon (`byId`, generaciones); su store
   tiene la misma forma (del día / ilimitado, estadísticas) pero con ids de objeto y bolsillos como filtro. El del día solo
   sale de bolsillos y categorías conocidas (`dailyPool`); el ilimitado ofrece todo, incluidos objetos clave y cartas. Cada
@@ -280,8 +285,8 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 ## 11. Estado del proyecto
 
 **Hecho (noviembre de 2026)**
-- 11 juegos publicados, interfaz en inglés y español, página de contacto, inicio con estado del día por juego, compartir en todos.
-- 194 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
+- 12 juegos publicados, interfaz en inglés y español, página de contacto, inicio con estado del día por juego, compartir en todos.
+- 201 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
 - Auditoría de dependencias sin vulnerabilidades tras subir a Vite 7 / Vitest 4 / React Router 7.
 
 **Limitaciones conocidas**

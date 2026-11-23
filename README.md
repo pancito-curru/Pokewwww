@@ -13,10 +13,11 @@ A Pokémon trivia web app with eight game modes:
 | **Moveset** | `#/moveset` | Name a Pokémon from the moves it learns; each miss reveals another move |
 | **Hangman** | `#/hangman` | Guess a Pokémon name letter by letter; 6 misses allowed |
 | **PokeGPS** | `#/gps` | Name a Pokémon from its type and the places it appears in the wild (daily/unlimited), or explore a map and name everyone who appears there |
+| **PokeIndex** | `#/pokeindex` | Name the Pokémon from its Pokédex number; misses unlock the generation, the types and finally the silhouette |
 | **Item Sprites** | `#/item` | Name an item from its pixel sprite (daily or unlimited by item type); each miss unlocks a hint; names work in English or Spanish |
 | **Shiny Hunt** | `#/shiny` | Spot the one shiny among 299 regular copies of the same Pokémon; 5 wrong picks allowed |
 
-Who's That?, Pokédle, Pokécross, Moveset, Hangman, Shiny Hunt, PokeGPS and Item Sprites also have a daily puzzle (the same for everyone) and an unlimited mode. There is also a contact page (`#/contact`).
+Who's That?, Pokédle, Pokécross, Moveset, Hangman, Shiny Hunt, PokeGPS, PokeIndex and Item Sprites also have a daily puzzle (the same for everyone) and an unlimited mode. There is also a contact page (`#/contact`).
 
 The original design is in [BLUEPRINT.md](BLUEPRINT.md).
 

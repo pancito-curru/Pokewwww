@@ -13,7 +13,7 @@ import { useWordleStore } from '../games/wordle/store';
 import { useCrossStore } from '../games/crossword/store';
 import { identifyStores } from '../games/identify/store';
 import type { IdentifyKind } from '../games/identify/kinds';
-import { useGpsStore, useHangmanStore, useMovesetStore, useShinyStore } from '../games/puzzle/stores';
+import { useGpsStore, useHangmanStore, useMovesetStore, usePokeIndexStore, useShinyStore } from '../games/puzzle/stores';
 import { useExploreStore } from '../games/gps/exploreStore';
 import { useItemStore } from '../games/items/store';
 
@@ -137,6 +137,7 @@ const STATUS: Record<string, () => ReactNode> = {
   '/cry': () => <IdentifyStatus kind="cry" />,
   '/moveset': () => <MovesetStatus />,
   '/hangman': () => <HangmanStatus />,
+  '/pokeindex': () => <PokeIndexStatus />,
   '/shiny': () => <ShinyStatus />,
   '/gps': () => <GpsStatus />,
   '/item': () => <ItemStatus />,
@@ -243,4 +244,10 @@ function ItemStatus() {
       {extra}
     </>
   );
+}
+
+function PokeIndexStatus() {
+  const daily = usePokeIndexStore((s) => s.daily);
+  const streak = usePokeIndexStore((s) => s.stats.daily.streak);
+  return <PuzzleStatusView daily={daily} streak={streak} unit="guess" />;
 }

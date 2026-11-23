@@ -10,13 +10,14 @@ import { identify } from './dict/identify';
 import { contact } from './dict/contact';
 import { gps } from './dict/gps';
 import { item } from './dict/item';
+import { pokeindex } from './dict/pokeindex';
 
-const AREAS = [common, shiny, games, puzzles, identify, contact, gps, item];
+const AREAS = [common, shiny, games, puzzles, identify, contact, gps, item, pokeindex];
 const merge = (lang: Lang) => Object.assign({}, ...AREAS.map((a) => a[lang])) as Record<string, string>;
 
 export const DICTS: Record<Lang, Record<string, string>> = { en: merge('en'), es: merge('es') };
 
-type AllKeys = keyof (typeof common.en & typeof shiny.en & typeof games.en & typeof puzzles.en & typeof identify.en & typeof contact.en & typeof gps.en & typeof item.en);
+type AllKeys = keyof (typeof common.en & typeof shiny.en & typeof games.en & typeof puzzles.en & typeof identify.en & typeof contact.en & typeof gps.en & typeof item.en & typeof pokeindex.en);
 /** Plural variants (`key_one` / `key_other`) are addressed by their base key. */
 export type MsgKey = AllKeys extends infer K ? (K extends `${infer B}_${'one' | 'other'}` ? B : K) : never;
 

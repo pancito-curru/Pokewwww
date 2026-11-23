@@ -30,6 +30,7 @@ export const CONTACT_AREAS = [
   { value: 'Cries', key: 'mode.cry.title' },
   { value: 'Moveset', key: 'mode.moveset.title' },
   { value: 'Hangman', key: 'mode.hangman.title' },
+  { value: 'PokeIndex', key: 'mode.pokeindex.title' },
   { value: 'Shiny Hunt', key: 'mode.shiny.title' },
   { value: 'PokeGPS', key: 'mode.gps.title' },
   { value: 'Item Sprites', key: 'mode.item.title' },

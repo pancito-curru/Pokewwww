@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createPuzzleStore } from './createPuzzleStore';
-import { useGpsStore, useHangmanStore, useMovesetStore, useShinyStore } from './stores';
+import { useGpsStore, useHangmanStore, useMovesetStore, usePokeIndexStore, useShinyStore } from './stores';
+import { MAX_GUESSES as INDEX_MAX } from '../../lib/pokeindex';
 import { MAX_GUESSES as MAX_GPS_GUESSES } from '../../lib/gps';
 import { isShinyCandidate, MAX_MISSES as MAX_SHINY_MISSES, roundSeed, shinyIndex } from '../../lib/shiny';
 import { byId } from '../../data';
@@ -143,5 +144,34 @@ describe('gps store', () => {
     s().ensureRound(only);
     wrong.forEach((id) => s().guess(id));
     expect(s().daily!.status).toBe('lost');
+  });
+});
+
+describe('pokeindex store', () => {
+  const s = () => usePokeIndexStore.getState();
+  beforeEach(() => usePokeIndexStore.setState({ mode: 'daily', daily: null, unlimited: null, generations: [] }));
+
+  it('wins on the right Pokémon and loses after the allowed misses', () => {
+    s().ensureRound();
+    const t = s().daily!.targetId;
+    const wrong = [1, 4, 7, 10, 13, 16, 19].filter((id) => id !== t);
+    wrong.slice(0, 2).forEach((id) => s().guess(id));
+    expect(s().guess(wrong[0])).toBe(false); // repeat ignored
+    expect(s().guess(t)).toBe(true);
+    expect(s().daily!.status).toBe('won');
+
+    usePokeIndexStore.setState({ daily: null });
+    s().ensureRound();
+    const t2 = s().daily!.targetId;
+    [1, 4, 7, 10, 13, 16, 19].filter((id) => id !== t2).slice(0, INDEX_MAX).forEach((id) => s().guess(id));
+    expect(s().daily!.status).toBe('lost');
+  });
+
+  it('respects the generation filter in unlimited', () => {
+    usePokeIndexStore.setState({ generations: [2] });
+    for (let i = 0; i < 20; i++) {
+      s().newUnlimited();
+      expect(byId.get(s().unlimited!.targetId)!.generation).toBe(2);
+    }
   });
 });
