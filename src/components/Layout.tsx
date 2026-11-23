@@ -15,7 +15,7 @@ export default function Layout() {
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    const mode = MODES.find((m) => m.path === pathname);
+    const mode = MODES.find((m) => pathname === m.path || pathname.startsWith(`${m.path}/`));
     const title = mode ? t(`mode.${mode.id}.title`) : pathname === '/contact' ? t('nav.contact') : null;
     document.title = title ? `${title} · Pokewwwww` : t('app.title');
     window.scrollTo(0, 0);

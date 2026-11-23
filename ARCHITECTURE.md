@@ -12,7 +12,7 @@ está. El diseño original está en [BLUEPRINT.md](BLUEPRINT.md); el README cubr
 
 ## 1. Qué es
 
-Web de trivia Pokémon, sin fines de lucro, con 9 juegos ("secciones") y una página de contacto.
+Web de trivia Pokémon, sin fines de lucro, con 10 juegos ("secciones") y una página de contacto.
 Todo corre en el navegador: no hay servidor propio ni base de datos. El progreso y las estadísticas
 se guardan en `localStorage` del jugador.
 
@@ -72,6 +72,8 @@ scripts/
   fetch-cache.ts               getJson (caché en scripts/cache), pool, helpers
   build-pokedex.ts             → src/data/pokedex.json   (npm run data)
   build-movesets.ts            → src/data/movesets.json  (npm run data:moves)
+  build-locations.ts           → src/data/locations.json (npm run data:locations)
+  analyze-gps.ts               cuántas respuestas encajan con cada pista de PokeGPS (npx tsx)
 src/
   main.tsx, App.tsx            arranque y rutas (lazy por juego)
   index.css                    Tailwind + clases utilitarias (.pixelated, .tile)
@@ -90,6 +92,7 @@ src/
     identify/                  motor de Siluetas y Llantos (daily + contrarreloj)
     puzzle/                    motor de Moveset, Hangman y Shiny Hunt (daily + ilimitado)
     moveset/ hangman/ shiny/   pantallas de esos juegos
+    gps/                       PokeGPS: acertijo (motor puzzle) + exploración de mapas (store propio)
   i18n/                        idioma (EN/ES): hook `useT`, store y diccionarios (`dict/`)
 public/favicon.svg
 BLUEPRINT.md, README.md, ARCHITECTURE.md, CLAUDE.md
@@ -107,6 +110,12 @@ nombre tapado por `_____`).
 - `letters`: solo A–Z en mayúsculas (Wordle, crucigrama). Los nombres con dígitos se excluyen de
   los juegos de letras (`isLetterSafe`).
 - `slug`: nombre en PokéSprite; `null` en Gen 9, que usa los sprites de PokeAPI.
+
+### `locations.json` (`lib/gps.ts`: `LocationData`)
+`{ locations: {id: [nombre, región]}, pokemon: {id: [[lugar, nivelMin, nivelMax], …]} }`. Sale de
+`/pokemon/{id}/encounters`, con las áreas agrupadas por lugar; solo lugares con región. 846 de 1025 Pokémon tienen
+encuentros salvajes (los evolucionados, iniciales, legendarios… no) y **ninguno de Gen 9**: PokeAPI no tiene encuentros
+de Paldea. Se carga con `import()` dentro del juego (~170 kB, 39 kB gzip).
 
 ### `movesets.json` (`lib/moveset.ts`: `MovesetData`)
 `{ moves: {slug: {name, type, cls}}, games: {vgId: "Scarlet & Violet"}, sets: {id: {vg, moves: [[slug, learn]]}} }`.
@@ -134,6 +143,7 @@ carpeta fuerza una descarga nueva. Los JSON generados se commitean.
 | Cries | `#/cry` | `games/identify/` (kind `cry`) | `pokewwww-cry` | del día (3 intentos), contrarreloj |
 | Moveset | `#/moveset` | `games/moveset/` + `games/puzzle/` | `pokewwww-moveset` | del día, ilimitado |
 | Hangman | `#/hangman` | `games/hangman/` + `games/puzzle/` | `pokewwww-hangman` | del día, ilimitado |
+| PokeGPS | `#/gps`, `#/gps/map` | `games/gps/` + `games/puzzle/`, `lib/gps.ts` | `pokewwww-gps`, `pokewwww-gpsmap` | del día, ilimitado, explorar (región) |
 | Shiny Hunt | `#/shiny` | `games/shiny/` + `games/puzzle/`, `lib/shiny.ts` | `pokewwww-shiny` | del día, ilimitado (generación del Pokémon) |
 | Contacto | `#/contact` | `pages/Contact.tsx`, `lib/contact.ts` | — | formulario → FormSubmit |
 
@@ -163,6 +173,11 @@ Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx`
 - **`games/puzzle/` también sirve a Shiny Hunt**: el "Pokémon oculto" es el que se repite 300 veces en el tablero (299
   normales + 1 shiny) y los intentos son las posiciones pulsadas. La posición del shiny no se guarda: sale de
   `shinyIndex(roundSeed(ronda))`.
+- **PokeGPS (`games/gps/`)**: el acertijo reutiliza `createPuzzleStore` (`useGpsStore`, 6 fallos, entrada de la Pokédex tras
+  4). Como una pista puede encajar con varios Pokémon, `buildClue` añade etapa evolutiva, generación y rango de nivel solo
+  cuando otro Pokémon encaja con tipo + lugares, y `fits` acepta cualquiera que encaje con todo lo mostrado (la
+  pantalla manda el id del objetivo al store). El modo Explorar (`exploreStore`, `/gps/map`) elige una región y un lugar
+  con 3–25 Pokémon, que se adivinan con autocompletado; al terminar pasa a otro lugar sin repetir.
 - **`games/identify/`**: "identifica al Pokémon de una pista" con del día (3 intentos) y partida
   contrarreloj (regiones + 1/2/3/5 min, avance automático). `createIdentifyStore(kind)` y `Prompt`
   (tarjeta de silueta o reproductor de llanto). Para un tipo de pista nuevo: añadir un `kind`.
@@ -250,8 +265,8 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 ## 11. Estado del proyecto
 
 **Hecho (noviembre de 2026)**
-- 9 juegos publicados, interfaz en inglés y español, página de contacto, inicio con estado del día por juego, compartir en todos.
-- 153 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
+- 10 juegos publicados, interfaz en inglés y español, página de contacto, inicio con estado del día por juego, compartir en todos.
+- 173 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
 - Auditoría de dependencias sin vulnerabilidades tras subir a Vite 7 / Vitest 4 / React Router 7.
 
 **Limitaciones conocidas**
@@ -260,6 +275,9 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 - La dirección de contacto aparece en el código fuente; FormSubmit ofrece un alias para ocultarla.
 - Algunos niveles de Legends: Z-A parecen raros (p. ej. Volt Tackle a nivel 99); son los datos de PokeAPI.
 - Estadísticas solo locales: no hay cuentas ni rankings.
+- PokeGPS: sin Pokémon de Gen 9 (ni Paldea) por falta de datos en PokeAPI; los nombres de lugares están en inglés. Con
+  tipo + lugares, ~15 % de las pistas las cumplen varios Pokémon (de ahí los datos extra); con ellos quedan como mucho 2
+  respuestas válidas.
 - Shiny Hunt: algunos shiny cambian muy poco de color frente al normal (difíciles de ver); no hay temporizador.
   La URL de la imagen shiny contiene `/shiny/` (visible en las herramientas del navegador).
 - Nombres, categorías, entradas de la Pokédex y movimientos siguen en inglés aunque la interfaz esté en español.

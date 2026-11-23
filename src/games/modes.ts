@@ -1,7 +1,7 @@
 export interface GameMode {
   path: string;
   /** Titles and blurbs live in the dictionaries as `mode.<id>.title` / `mode.<id>.blurb`. */
-  id: 'timed' | 'guess' | 'wordle' | 'crossword' | 'silhouette' | 'cry' | 'moveset' | 'hangman' | 'shiny';
+  id: 'timed' | 'guess' | 'wordle' | 'crossword' | 'silhouette' | 'cry' | 'moveset' | 'hangman' | 'shiny' | 'gps';
   /** Dex numbers shown as the card's sprite collage. */
   sprites: number[];
 }
@@ -16,4 +16,5 @@ export const MODES: GameMode[] = [
   { path: '/moveset', id: 'moveset', sprites: [68, 106, 107] },
   { path: '/hangman', id: 'hangman', sprites: [425, 355, 354] },
   { path: '/shiny', id: 'shiny', sprites: [6, 130, 25] },
+  { path: '/gps', id: 'gps', sprites: [41, 129, 16] },
 ];

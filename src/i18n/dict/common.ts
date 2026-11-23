@@ -32,6 +32,8 @@ export const common = defineArea({
     'mode.hangman.title': 'Hangman',
     'mode.hangman.blurb': 'Guess the Pokémon’s name one letter at a time before the drawing is complete.',
     'mode.shiny.title': 'Shiny Hunt',
+    'mode.gps.title': 'PokeGPS',
+    'mode.gps.blurb': 'Name the Pokémon from where it appears in the wild, or explore a map and find everyone who lives there.',
     'mode.shiny.blurb': 'Hundreds of the same Pokémon, but only one is shiny. Can you spot it?',
 
     'status.streak': ' · {n}-day streak',
@@ -119,6 +121,8 @@ export const common = defineArea({
     'mode.hangman.title': 'Ahorcado',
     'mode.hangman.blurb': 'Adivina el nombre del Pokémon letra por letra antes de que se complete el dibujo.',
     'mode.shiny.title': 'Caza Shiny',
+    'mode.gps.title': 'PokeGPS',
+    'mode.gps.blurb': 'Nombra al Pokémon por dónde aparece en estado salvaje, o explora un mapa y encuentra a todos los que viven allí.',
     'mode.shiny.blurb': 'Cientos del mismo Pokémon, pero solo uno es shiny. ¿Puedes encontrarlo?',
 
     'status.streak': ' · racha de {n} días',

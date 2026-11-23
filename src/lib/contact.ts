@@ -31,6 +31,7 @@ export const CONTACT_AREAS = [
   { value: 'Moveset', key: 'mode.moveset.title' },
   { value: 'Hangman', key: 'mode.hangman.title' },
   { value: 'Shiny Hunt', key: 'mode.shiny.title' },
+  { value: 'PokeGPS', key: 'mode.gps.title' },
 ] as const;
 
 export interface ContactForm {

@@ -18,21 +18,24 @@ export function PuzzleHeader({
   intro,
   mode,
   onMode,
+  explore,
 }: {
   title: string;
   intro: ReactNode;
   mode: PuzzleMode;
   onMode: (m: PuzzleMode) => void;
+  /** A third tab for a mode outside the puzzle engine (PokeGPS map exploring). */
+  explore?: { label: string; active: boolean; onSelect: () => void };
 }) {
   const { t } = useT();
   const tab = (m: PuzzleMode, label: string) => (
     <button
       type="button"
       role="tab"
-      aria-selected={mode === m}
+      aria-selected={mode === m && !explore?.active}
       onClick={() => onMode(m)}
       className={`rounded-md px-4 py-1.5 text-sm font-semibold transition ${
-        mode === m ? 'bg-white shadow dark:bg-slate-700' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+        mode === m && !explore?.active ? 'bg-white shadow dark:bg-slate-700' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
       }`}
     >
       {label}
@@ -47,6 +50,19 @@ export function PuzzleHeader({
       <div role="tablist" className="flex rounded-lg bg-slate-200 p-1 dark:bg-slate-800">
         {tab('daily', t('mode.daily'))}
         {tab('unlimited', t('mode.unlimited'))}
+        {explore && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={explore.active}
+            onClick={explore.onSelect}
+            className={`rounded-md px-4 py-1.5 text-sm font-semibold transition ${
+              explore.active ? 'bg-white shadow dark:bg-slate-700' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
+          >
+            {explore.label}
+          </button>
+        )}
       </div>
     </header>
   );

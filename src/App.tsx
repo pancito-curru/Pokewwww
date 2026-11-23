@@ -14,6 +14,7 @@ const CryGame = lazy(() => import('./games/identify/CryGame'));
 const MovesetGame = lazy(() => import('./games/moveset/MovesetGame'));
 const HangmanGame = lazy(() => import('./games/hangman/HangmanGame'));
 const ShinyGame = lazy(() => import('./games/shiny/ShinyGame'));
+const GpsGame = lazy(() => import('./games/gps/GpsGame'));
 const Contact = lazy(() => import('./pages/Contact'));
 
 const Loading = () => {
@@ -35,6 +36,8 @@ export default function App() {
         <Route path="moveset" element={<Suspense fallback={<Loading />}><MovesetGame /></Suspense>} />
         <Route path="hangman" element={<Suspense fallback={<Loading />}><HangmanGame /></Suspense>} />
         <Route path="shiny" element={<Suspense fallback={<Loading />}><ShinyGame /></Suspense>} />
+        <Route path="gps" element={<Suspense fallback={<Loading />}><GpsGame /></Suspense>} />
+        <Route path="gps/map" element={<Suspense fallback={<Loading />}><GpsGame /></Suspense>} />
         <Route path="contact" element={<Suspense fallback={<Loading />}><Contact /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
