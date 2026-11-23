@@ -1,4 +1,5 @@
 import { useT } from '../../i18n';
+import { MAX_WRONG } from '../../lib/gps';
 import { PuzzleHeader } from '../puzzle/Chrome';
 import GpsDaily from './GpsDaily';
 import GpsUnlimited from './GpsUnlimited';
@@ -16,7 +17,7 @@ export default function GpsGame() {
     <div className="space-y-5">
       <PuzzleHeader
         title={t('mode.gps.title')}
-        intro={t(mode === 'daily' ? 'gps.introDaily' : 'gps.introUnlimited')}
+        intro={t(mode === 'daily' ? 'gps.introDaily' : 'gps.introUnlimited', { max: MAX_WRONG })}
         mode={mode}
         onMode={(m) => useGpsStore.getState().setMode(m)}
       />

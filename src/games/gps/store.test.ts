@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { MAX_WRONG } from '../../lib/gps';
 import { todayKey } from '../../lib/rng';
 import { emptyStats } from '../../lib/stats';
 import { useGpsStore } from './store';
@@ -47,6 +48,15 @@ describe('daily', () => {
     expect(s().dailyStats.played).toBe(1);
   });
 
+  it('running out of tries records a loss', () => {
+    s().ensureDaily(10, 'Kanto', 5);
+    s().guessDaily(25, true);
+    for (let i = 0; i < MAX_WRONG; i++) s().guessDaily(100 + i, false);
+    expect(s().daily!.status).toBe('lost');
+    expect(s().dailyStats).toMatchObject({ played: 1, wins: 0, streak: 0 });
+    expect(s().guessDaily(16, true)).toBe(false);
+  });
+
   it('giving up records a loss once', () => {
     s().ensureDaily(10, 'Kanto', 3);
     s().giveUpDaily();
@@ -82,6 +92,14 @@ describe('unlimited', () => {
     expect(s().guess(1, false)).toBe(false);
     expect(s().map!.wrong).toEqual([1]);
     expect(s().map!.status).toBe('playing');
+  });
+
+  it('running out of tries ends the map without counting it', () => {
+    s().start('Kanto', 10, 4);
+    for (let i = 0; i < MAX_WRONG; i++) s().guess(100 + i, false);
+    expect(s().map!.status).toBe('lost');
+    expect(s().stats.maps).toBe(0);
+    expect(s().guess(25, true)).toBe(false);
   });
 
   it('giving up ends the map without counting it', () => {

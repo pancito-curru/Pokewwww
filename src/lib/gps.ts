@@ -16,6 +16,9 @@ export const REGION_ORDER = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalo
 /** Orre (the Colosseum games) is only offered in unlimited: its places are too obscure for a daily. */
 const DAILY_EXCLUDED = new Set(['Orre']);
 
+/** Wrong guesses allowed in a place; the next one loses it. */
+export const MAX_WRONG = 5;
+
 /** One place being played: name every Pokémon that appears there. */
 export interface MapRound {
   loc: number;
@@ -25,7 +28,7 @@ export interface MapRound {
   found: number[];
   /** Guesses that don't appear here. */
   wrong: number[];
-  status: 'playing' | 'done' | 'gaveUp';
+  status: 'playing' | 'done' | 'lost' | 'gaveUp';
 }
 
 export const newMapRound = (loc: number, region: string, total: number): MapRound => ({
@@ -40,7 +43,10 @@ export const newMapRound = (loc: number, region: string, total: number): MapRoun
 /** The round after a guess; null when it is ignored (a repeat, or the map is over). */
 export function applyGuess(map: MapRound, id: number, inMap: boolean): MapRound | null {
   if (map.status !== 'playing' || map.found.includes(id) || map.wrong.includes(id)) return null;
-  if (!inMap) return { ...map, wrong: [...map.wrong, id] };
+  if (!inMap) {
+    const wrong = [...map.wrong, id];
+    return { ...map, wrong, status: wrong.length >= MAX_WRONG ? 'lost' : 'playing' };
+  }
   const found = [...map.found, id];
   return { ...map, found, status: found.length >= map.total ? 'done' : 'playing' };
 }

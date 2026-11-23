@@ -38,7 +38,9 @@ export default function GpsUnlimited({ data }: { data: LocationData }) {
           onOver={
             <section className="mx-auto flex max-w-2xl flex-col items-center gap-3 rounded-xl bg-white p-5 text-center shadow dark:bg-slate-800/60">
               <p className={`font-pixel text-sm ${map.status === 'done' ? 'text-emerald-600' : 'text-slate-500'}`}>
-                {map.status === 'done' ? t('gps.mapDone') : t('gps.mapGaveUp', { found: map.found.length, total: map.total })}
+                {map.status === 'done'
+                  ? t('gps.mapDone')
+                  : t(map.status === 'lost' ? 'gps.mapLost' : 'gps.mapGaveUp', { found: map.found.length, total: map.total })}
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 <button type="button" className={btnPrimary} onClick={() => startMap(region, map.loc)}>

@@ -75,7 +75,7 @@ export default function PokeIndexGame() {
 
       {!over && (
         <div className="mx-auto flex max-w-xl flex-wrap items-start gap-3">
-          <PokemonInput onSelect={guess} exclude={guessed} />
+          <PokemonInput onSelect={guess} exclude={guessed} showNumbers={false} />
           <div className="flex items-center gap-3 py-2.5 text-sm">
             <span className="tabular-nums text-slate-600 dark:text-slate-300">
               {t('puz.guessOf', { n: round.guesses.length + 1, max: MAX_GUESSES })}

@@ -30,7 +30,9 @@ export default function GpsDaily({ data }: { data: LocationData }) {
       onOver={
         <section className="mx-auto flex max-w-2xl flex-col items-center gap-4 rounded-xl bg-white p-5 text-center shadow dark:bg-slate-800/60">
           <p className={`font-pixel text-sm ${won ? 'text-emerald-600' : 'text-slate-500'}`}>
-            {won ? t('gps.mapDone') : t('gps.mapGaveUp', { found: daily.found.length, total: daily.total })}
+            {won
+              ? t('gps.mapDone')
+              : t(daily.status === 'lost' ? 'gps.mapLost' : 'gps.mapGaveUp', { found: daily.found.length, total: daily.total })}
           </p>
           <dl className="flex gap-5 text-sm">
             {[

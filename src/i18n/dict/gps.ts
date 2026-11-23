@@ -4,9 +4,9 @@ export const gps = defineArea({
   en: {
     'gps.loading': 'Loading the map…',
     'gps.introDaily':
-      'Today’s place is the same for everyone. Every Pokémon that appears there is hidden behind its type: name them all.',
+      'Today’s place is the same for everyone. Every Pokémon that appears there is hidden behind its type: name them all. You can miss {max} times.',
     'gps.introUnlimited':
-      'Pick a region and name every Pokémon that appears in a place. Finish it to move on to another place in the same region.',
+      'Pick a region and name every Pokémon that appears in a place. Finish it to move on to another place in the same region. {max} wrong guesses lose the place.',
     'gps.level': 'Lv. {n}',
     'gps.levels': 'Lv. {min}–{max}',
     'gps.pickRegion': 'Choose a region',
@@ -18,6 +18,8 @@ export const gps = defineArea({
     'gps.hiddenSlot': 'Hidden Pokémon',
     'gps.mapDone': 'Map complete!',
     'gps.mapGaveUp': 'You found {found} of {total}.',
+    'gps.mapLost': 'Out of tries! You found {found} of {total}.',
+    'gps.tries': 'Wrong guesses: {n} / {max}',
     'gps.nextMap': 'Next map',
     'gps.changeRegion': 'Change region',
     'gps.notHere': 'Not found here:',
@@ -31,9 +33,9 @@ export const gps = defineArea({
   es: {
     'gps.loading': 'Cargando el mapa…',
     'gps.introDaily':
-      'El lugar de hoy es el mismo para todos. Cada Pokémon que aparece allí está oculto tras su tipo: nómbralos a todos.',
+      'El lugar de hoy es el mismo para todos. Cada Pokémon que aparece allí está oculto tras su tipo: nómbralos a todos. Puedes fallar {max} veces.',
     'gps.introUnlimited':
-      'Elige una región y nombra a todos los Pokémon que aparecen en un lugar. Al terminarlo pasas a otro lugar de la misma región.',
+      'Elige una región y nombra a todos los Pokémon que aparecen en un lugar. Al terminarlo pasas a otro lugar de la misma región. {max} fallos y pierdes el lugar.',
     'gps.level': 'Nv. {n}',
     'gps.levels': 'Nv. {min}–{max}',
     'gps.pickRegion': 'Elige una región',
@@ -45,6 +47,8 @@ export const gps = defineArea({
     'gps.hiddenSlot': 'Pokémon oculto',
     'gps.mapDone': '¡Mapa completado!',
     'gps.mapGaveUp': 'Encontraste {found} de {total}.',
+    'gps.mapLost': '¡Sin intentos! Encontraste {found} de {total}.',
+    'gps.tries': 'Fallos: {n} / {max}',
     'gps.nextMap': 'Siguiente mapa',
     'gps.changeRegion': 'Cambiar de región',
     'gps.notHere': 'No aparecen aquí:',

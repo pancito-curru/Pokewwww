@@ -4,6 +4,7 @@ import raw from '../data/locations.json';
 import {
   MAP_MAX,
   MAP_MIN,
+  MAX_WRONG,
   REGION_ORDER,
   applyGuess,
   dailyMap,
@@ -113,6 +114,15 @@ describe('applyGuess', () => {
     const a = applyGuess(map, 151, false)!;
     expect(a.wrong).toEqual([151]);
     expect(a.status).toBe('playing');
+  });
+  it(`loses the place at ${MAX_WRONG} wrong guesses, and a last-moment find still wins`, () => {
+    let m = newMapRound(1, 'Kanto', 3);
+    for (let i = 0; i < MAX_WRONG - 1; i++) m = applyGuess(m, 100 + i, false)!;
+    expect(m.status).toBe('playing');
+    expect(applyGuess(m, 25, true)!.status).toBe('playing');
+    const lost = applyGuess(m, 200, false)!;
+    expect(lost.status).toBe('lost');
+    expect(applyGuess(lost, 25, true)).toBeNull();
   });
   it('ignores repeats and guesses after the end', () => {
     const a = applyGuess(map, 25, true)!;

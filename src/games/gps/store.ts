@@ -60,7 +60,7 @@ export const useGpsStore = create<GpsState>()(
         set({
           daily: { ...next, key: daily.key },
           ...(finished && {
-            dailyStats: recordResult(dailyStats, { daily: true, won: true, bucket: next.wrong.length, date: daily.key }),
+            dailyStats: recordResult(dailyStats, { daily: true, won: next.status === 'done', bucket: next.wrong.length, date: daily.key }),
           }),
         });
         return true;

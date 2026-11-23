@@ -4,7 +4,7 @@ import Sprite from '../../components/Sprite';
 import TypeBadge from '../../components/TypeBadge';
 import { byId } from '../../data';
 import { useT } from '../../i18n';
-import { levelsAt, membersOf, type LocationData, type MapRound } from '../../lib/gps';
+import { MAX_WRONG, levelsAt, membersOf, type LocationData, type MapRound } from '../../lib/gps';
 import { GiveUp } from '../puzzle/Chrome';
 
 /**
@@ -97,7 +97,10 @@ export default function MapBoard({
       {!over ? (
         <div className="mx-auto flex max-w-2xl flex-wrap items-start gap-3">
           <PokemonInput onSelect={(id) => onGuess(id, members.includes(id))} exclude={known} />
-          <div className="flex items-center gap-2 py-2.5">
+          <div className="flex items-center gap-3 py-2.5 text-sm">
+            <span className="tabular-nums text-slate-600 dark:text-slate-300" aria-live="polite">
+              {t('gps.tries', { n: map.wrong.length, max: MAX_WRONG })}
+            </span>
             <GiveUp onConfirm={onGiveUp} />
           </div>
         </div>

@@ -194,8 +194,8 @@ Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx`
   inglés y español (los objetos sí tienen nombre en español en PokeAPI). El autocompletado no muestra sprites.
 - **PokeGPS (`games/gps/`)**: no usa `createPuzzleStore`; su store (`store.ts`, clave `pokewwww-gpsmap`) guarda el lugar del
   día, sus estadísticas y el modo ilimitado. Un lugar (`MapRound`) tiene una casilla oculta por cada Pokémon que aparece
-  allí (con sus tipos como pista) y se completa nombrándolos con autocompletado; los fallos no penalizan. Del día: un lugar
-  de cualquier región menos Orre, elegido por semilla (`dailyMap`); se pierde solo al rendirse. Ilimitado: se elige región y
+  allí (con sus tipos como pista) y se completa nombrándolos con autocompletado; se pierde con 5 fallos (`MAX_WRONG`). Del día: un lugar
+  de cualquier región menos Orre, elegido por semilla (`dailyMap`); también se pierde al rendirse. Ilimitado: se elige región y
   se encadenan lugares sin repetir hasta agotarlos. Solo cuentan lugares con 3–25 Pokémon (`mapsFor`). La lógica de
   rondas es pura (`applyGuess`, `newMapRound`) y `MapBoard` es la pantalla compartida por los dos modos.
 - **`games/identify/`**: "identifica al Pokémon de una pista" con del día (3 intentos) y partida
@@ -286,7 +286,7 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 
 **Hecho (noviembre de 2026)**
 - 12 juegos publicados, interfaz en inglés y español, página de contacto, inicio con estado del día por juego, compartir en todos.
-- 205 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
+- 208 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
 - Auditoría de dependencias sin vulnerabilidades tras subir a Vite 7 / Vitest 4 / React Router 7.
 
 **Limitaciones conocidas**

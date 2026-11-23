@@ -13,6 +13,8 @@ interface Props {
   autoFocus?: boolean;
   /** Show sprites next to suggestions. Off where a sprite would give the answer away. */
   showSprites?: boolean;
+  /** Show the dex number next to each suggestion. Off where the number is the clue (PokeIndex). */
+  showNumbers?: boolean;
 }
 
 const NONE: ReadonlySet<number> = new Set();
@@ -25,6 +27,7 @@ export default function PokemonInput({
   placeholder,
   autoFocus = true,
   showSprites = true,
+  showNumbers = true,
 }: Props) {
   const { t } = useT();
   const [query, setQuery] = useState('');
@@ -121,7 +124,7 @@ export default function PokemonInput({
             >
               {showSprites ? <Sprite id={p.id} scale={0.6} /> : <span className="w-1" aria-hidden />}
               <span className="font-medium">{p.name}</span>
-              <span className="ml-auto pr-2 font-mono text-xs text-slate-400">#{p.id}</span>
+              {showNumbers && <span className="ml-auto pr-2 font-mono text-xs text-slate-400">#{p.id}</span>}
             </li>
           ))}
         </ul>
