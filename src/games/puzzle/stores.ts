@@ -1,7 +1,6 @@
 import { byId } from '../../data';
 import { evaluate } from '../../lib/hangman';
 import { MAX_GUESSES } from '../../lib/moveset';
-import { MAX_GUESSES as GPS_MAX_GUESSES } from '../../lib/gps';
 import { MAX_GUESSES as INDEX_MAX_GUESSES } from '../../lib/pokeindex';
 import { evaluate as shinyEvaluate, roundSeed, shinyIndex } from '../../lib/shiny';
 import { createPuzzleStore } from './createPuzzleStore';
@@ -41,18 +40,6 @@ export const useShinyStore = createPuzzleStore<number>({
     return { ...r, guesses, status: s.won ? 'won' : s.lost ? 'lost' : 'playing' };
   },
   bucket: (r) => shinyEvaluate(r.guesses, shinyIndex(roundSeed(r))).misses,
-});
-
-/** PokeGPS: guesses are Pokémon ids. The component judges look-alike answers and sends the target id for them. */
-export const useGpsStore = createPuzzleStore<number>({
-  name: 'gps',
-  addGuess: (r, id) => {
-    if (r.guesses.includes(id)) return null;
-    const guesses = [...r.guesses, id];
-    const status = id === r.targetId ? 'won' : guesses.length >= GPS_MAX_GUESSES ? 'lost' : 'playing';
-    return { ...r, guesses, status };
-  },
-  bucket: (r) => r.guesses.length,
 });
 
 /** PokeIndex: guesses are Pokémon ids. */

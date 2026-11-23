@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createPuzzleStore } from './createPuzzleStore';
-import { useGpsStore, useHangmanStore, useMovesetStore, usePokeIndexStore, useShinyStore } from './stores';
+import { useHangmanStore, useMovesetStore, usePokeIndexStore, useShinyStore } from './stores';
 import { MAX_GUESSES as INDEX_MAX } from '../../lib/pokeindex';
-import { MAX_GUESSES as MAX_GPS_GUESSES } from '../../lib/gps';
 import { isShinyCandidate, MAX_MISSES as MAX_SHINY_MISSES, roundSeed, shinyIndex } from '../../lib/shiny';
 import { byId } from '../../data';
 import { lettersNeeded } from '../../lib/hangman';
@@ -114,36 +113,6 @@ describe('shiny store', () => {
       expect(id).not.toBe(774);
       expect(byId.get(id)!.generation).toBe(7);
     }
-  });
-});
-
-describe('gps store', () => {
-  const s = () => useGpsStore.getState();
-  beforeEach(() => useGpsStore.setState({ mode: 'daily', daily: null, unlimited: null, generations: [] }));
-  const only = (id: number) => id !== 3 && id !== 6; // stand-in for "has encounters"
-
-  it('only picks eligible Pokémon, same one all day', () => {
-    s().ensureRound(only);
-    const t = s().daily!.targetId;
-    expect(only(t)).toBe(true);
-    useGpsStore.setState({ daily: null });
-    s().ensureRound(only);
-    expect(s().daily!.targetId).toBe(t);
-  });
-
-  it(`wins on the target and loses after ${MAX_GPS_GUESSES} wrong guesses`, () => {
-    s().ensureRound(only);
-    const t = s().daily!.targetId;
-    const wrong = [1, 4, 7, 10, 13, 16, 19].filter((id) => id !== t).slice(0, MAX_GPS_GUESSES);
-    wrong.slice(0, 2).forEach((id) => s().guess(id));
-    expect(s().guess(t)).toBe(true);
-    expect(s().daily!.status).toBe('won');
-    expect(s().stats.daily.distribution[3]).toBe(1);
-
-    useGpsStore.setState({ daily: null });
-    s().ensureRound(only);
-    wrong.forEach((id) => s().guess(id));
-    expect(s().daily!.status).toBe('lost');
   });
 });
 

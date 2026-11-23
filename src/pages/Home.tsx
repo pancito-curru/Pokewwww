@@ -13,8 +13,8 @@ import { useWordleStore } from '../games/wordle/store';
 import { useCrossStore } from '../games/crossword/store';
 import { identifyStores } from '../games/identify/store';
 import type { IdentifyKind } from '../games/identify/kinds';
-import { useGpsStore, useHangmanStore, useMovesetStore, usePokeIndexStore, useShinyStore } from '../games/puzzle/stores';
-import { useExploreStore } from '../games/gps/exploreStore';
+import { useHangmanStore, useMovesetStore, usePokeIndexStore, useShinyStore } from '../games/puzzle/stores';
+import { useGpsStore } from '../games/gps/store';
 import { useItemStore } from '../games/items/store';
 
 import { useT, type TFn } from '../i18n';
@@ -214,17 +214,18 @@ function ShinyStatus() {
 
 function GpsStatus() {
   const { t } = useT();
-  const maps = useExploreStore((s) => s.stats.maps);
+  const maps = useGpsStore((s) => s.stats.maps);
   const daily = useGpsStore((s) => s.daily);
-  const streak = useGpsStore((s) => s.stats.daily.streak);
-  const mapsText = maps ? ` · ${t('status.gpsMaps', { count: maps })}` : '';
+  const streak = useGpsStore((s) => s.dailyStats.streak);
+  const extra = `${streakText(t, streak)}${maps ? ` · ${t('status.gpsMaps', { count: maps })}` : ''}`;
   const today = daily?.key === todayKey() ? daily : null;
-  const extra = `${streakText(t, streak)}${mapsText}`;
-  if (!today || (today.status === 'playing' && !today.guesses.length)) return <>{t('status.potdWaiting', { extra })}</>;
-  if (today.status === 'playing') return <Pending>{t('status.dailyProgress')}</Pending>;
+  if (!today || (today.status === 'playing' && !today.found.length && !today.wrong.length))
+    return <>{t('status.dailyWaiting', { extra })}</>;
+  if (today.status === 'playing')
+    return <Pending>{t('status.gpsProgress', { found: today.found.length, total: today.total })}</Pending>;
   return (
     <>
-      <Done>{today.status === 'won' ? t('status.dailySolvedIn', { n: today.guesses.length }) : t('status.dailyDone')}</Done>
+      <Done>{today.status === 'done' ? t('status.dailySolved') : t('status.dailyDone')}</Done>
       {extra}
     </>
   );

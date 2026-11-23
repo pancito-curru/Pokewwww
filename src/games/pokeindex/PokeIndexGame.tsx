@@ -56,7 +56,7 @@ export default function PokeIndexGame() {
             )}
             {hints.includes('types') && (
               <p className="animate-pop flex flex-wrap items-center justify-center gap-2">
-                <span className="font-semibold text-slate-500">{t('gps.type')}</span>
+                <span className="font-semibold text-slate-500">{t('pi.type')}</span>
                 {target.types.map((ty) => (
                   <TypeBadge key={ty} type={ty} />
                 ))}

@@ -33,7 +33,7 @@ export const common = defineArea({
     'mode.hangman.blurb': 'Guess the Pokémon’s name one letter at a time before the drawing is complete.',
     'mode.shiny.title': 'Shiny Hunt',
     'mode.gps.title': 'PokeGPS',
-    'mode.gps.blurb': 'Name the Pokémon from where it appears in the wild, or explore a map and find everyone who lives there.',
+    'mode.gps.blurb': 'A place on the map and a row of hidden Pokémon: name everyone who appears there. A new place every day, or pick a region and keep exploring.',
     'mode.pokeindex.title': 'PokeIndex',
     'mode.pokeindex.blurb': 'Given a Pokédex number, name the Pokémon. Misses unlock hints, and the silhouette comes last.',
     'mode.item.title': 'Item Sprites',
@@ -62,6 +62,7 @@ export const common = defineArea({
     'status.cross.solved': 'Daily solved in {time}',
     'status.potdWaiting': 'Pokémon of the day is waiting{extra}',
     'status.bestRun': ' · best run {n}',
+    'status.gpsProgress': 'Daily in progress · {found}/{total} found',
     'status.triesLeft': 'Daily in progress · {n} tries left',
 
     'mode.daily': 'Pokémon of the day',
@@ -126,7 +127,7 @@ export const common = defineArea({
     'mode.hangman.blurb': 'Adivina el nombre del Pokémon letra por letra antes de que se complete el dibujo.',
     'mode.shiny.title': 'Caza Shiny',
     'mode.gps.title': 'PokeGPS',
-    'mode.gps.blurb': 'Nombra al Pokémon por dónde aparece en estado salvaje, o explora un mapa y encuentra a todos los que viven allí.',
+    'mode.gps.blurb': 'Un lugar del mapa y una fila de Pokémon ocultos: nombra a todos los que aparecen allí. Un lugar nuevo cada día, o elige una región y sigue explorando.',
     'mode.pokeindex.title': 'PokeÍndice',
     'mode.pokeindex.blurb': 'Dado un número de la Pokédex, nombra al Pokémon. Los fallos desbloquean pistas y la silueta llega al final.',
     'mode.item.title': 'Sprites de objetos',
@@ -155,6 +156,7 @@ export const common = defineArea({
     'status.cross.solved': 'Reto diario resuelto en {time}',
     'status.potdWaiting': 'El Pokémon del día te espera{extra}',
     'status.bestRun': ' · mejor racha {n}',
+    'status.gpsProgress': 'Reto diario en curso · {found}/{total} encontrados',
     'status.triesLeft': 'Reto diario en curso · {n} intentos restantes',
 
     'mode.daily': 'Pokémon del día',

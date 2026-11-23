@@ -39,7 +39,6 @@ export default function App() {
         <Route path="hangman" element={<Suspense fallback={<Loading />}><HangmanGame /></Suspense>} />
         <Route path="shiny" element={<Suspense fallback={<Loading />}><ShinyGame /></Suspense>} />
         <Route path="gps" element={<Suspense fallback={<Loading />}><GpsGame /></Suspense>} />
-        <Route path="gps/map" element={<Suspense fallback={<Loading />}><GpsGame /></Suspense>} />
         <Route path="item" element={<Suspense fallback={<Loading />}><ItemGame /></Suspense>} />
         <Route path="pokeindex" element={<Suspense fallback={<Loading />}><PokeIndexGame /></Suspense>} />
         <Route path="contact" element={<Suspense fallback={<Loading />}><Contact /></Suspense>} />

@@ -3,24 +3,12 @@ import { defineArea } from '../define';
 export const gps = defineArea({
   en: {
     'gps.loading': 'Loading the map…',
-    'gps.intro':
-      'Name the Pokémon from its type and where it is found in the wild. {max} wrong guesses; after {hint} misses you get its Pokédex entry.',
-    'gps.explore': 'Explore',
-    'gps.where': 'Which Pokémon is found here?',
-    'gps.type': 'Type:',
-    'gps.places': 'Places where it appears',
-    'gps.more_one': '+ {count} more place',
-    'gps.more_other': '+ {count} more places',
-    'gps.extras': 'Other Pokémon fit these places too, so here is more',
-    'gps.stage': 'Evolution stage {n}',
-    'gps.gen': 'Generation {n}',
+    'gps.introDaily':
+      'Today’s place is the same for everyone. Every Pokémon that appears there is hidden behind its type: name them all.',
+    'gps.introUnlimited':
+      'Pick a region and name every Pokémon that appears in a place. Finish it to move on to another place in the same region.',
     'gps.level': 'Lv. {n}',
     'gps.levels': 'Lv. {min}–{max}',
-    'gps.entry': 'Pokédex entry',
-    'gps.alsoFits': '{name} fits the clue too, so it counts!',
-
-    'gps.exploreIntro':
-      'Pick a region and name every Pokémon that appears in a place. Finish it to move on to another place in the same region.',
     'gps.pickRegion': 'Choose a region',
     'gps.placesN': '{n} places',
     'gps.completedN': '{n} done',
@@ -34,29 +22,20 @@ export const gps = defineArea({
     'gps.changeRegion': 'Change region',
     'gps.notHere': 'Not found here:',
     'gps.statsLine': 'Maps completed: {maps} · Pokémon found: {pokemon}',
+    'gps.tomorrow': 'A new place comes tomorrow.',
+    'gps.shareMisses_one': '{count} wrong guess',
+    'gps.shareMisses_other': '{count} wrong guesses',
     'status.gpsMaps_one': '{count} map explored',
     'status.gpsMaps_other': '{count} maps explored',
   },
   es: {
     'gps.loading': 'Cargando el mapa…',
-    'gps.intro':
-      'Nombra al Pokémon por su tipo y los lugares donde aparece en estado salvaje. {max} intentos fallidos; tras {hint} fallos ves su entrada de la Pokédex.',
-    'gps.explore': 'Explorar',
-    'gps.where': '¿Qué Pokémon aparece aquí?',
-    'gps.type': 'Tipo:',
-    'gps.places': 'Lugares donde aparece',
-    'gps.more_one': '+ {count} lugar más',
-    'gps.more_other': '+ {count} lugares más',
-    'gps.extras': 'Otros Pokémon encajan con estos lugares, así que va más información',
-    'gps.stage': 'Etapa evolutiva {n}',
-    'gps.gen': 'Generación {n}',
+    'gps.introDaily':
+      'El lugar de hoy es el mismo para todos. Cada Pokémon que aparece allí está oculto tras su tipo: nómbralos a todos.',
+    'gps.introUnlimited':
+      'Elige una región y nombra a todos los Pokémon que aparecen en un lugar. Al terminarlo pasas a otro lugar de la misma región.',
     'gps.level': 'Nv. {n}',
     'gps.levels': 'Nv. {min}–{max}',
-    'gps.entry': 'Entrada de la Pokédex',
-    'gps.alsoFits': '¡{name} también encaja con la pista, así que vale!',
-
-    'gps.exploreIntro':
-      'Elige una región y nombra a todos los Pokémon que aparecen en un lugar. Al terminarlo pasas a otro lugar de la misma región.',
     'gps.pickRegion': 'Elige una región',
     'gps.placesN': '{n} lugares',
     'gps.completedN': '{n} completados',
@@ -70,6 +49,9 @@ export const gps = defineArea({
     'gps.changeRegion': 'Cambiar de región',
     'gps.notHere': 'No aparecen aquí:',
     'gps.statsLine': 'Mapas completados: {maps} · Pokémon encontrados: {pokemon}',
+    'gps.tomorrow': 'Mañana habrá un lugar nuevo.',
+    'gps.shareMisses_one': '{count} fallo',
+    'gps.shareMisses_other': '{count} fallos',
     'status.gpsMaps_one': '{count} mapa explorado',
     'status.gpsMaps_other': '{count} mapas explorados',
   },

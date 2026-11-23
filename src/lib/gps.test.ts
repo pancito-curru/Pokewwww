@@ -1,96 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { POKEDEX, byId } from '../data';
+import { POKEDEX } from '../data';
 import raw from '../data/locations.json';
 import {
   MAP_MAX,
   MAP_MIN,
-  MAX_SHOWN,
-  buildClue,
-  fits,
-  guessRow,
-  hasEncounters,
+  REGION_ORDER,
+  applyGuess,
+  dailyMap,
   levelsAt,
   mapsFor,
   membersOf,
+  newMapRound,
   pickMap,
   regionsOf,
-  roundSeed,
-  spotsOf,
+  shareRow,
   type LocationData,
 } from './gps';
-import { dailySeed, mulberry32, todayKey } from './rng';
+import { mulberry32 } from './rng';
 
 const data = raw as unknown as LocationData;
-const candidates = POKEDEX.filter((p) => hasEncounters(data, p.id));
+const idsInDex = new Set(POKEDEX.map((p) => p.id));
 
 describe('location data', () => {
   it('covers most of the dex but not Gen 9 (PokeAPI has no Paldea encounters)', () => {
-    expect(candidates.length).toBeGreaterThan(800);
-    expect(candidates.some((p) => p.generation === 9)).toBe(false);
-  });
-  it('finds well-known spots', () => {
-    const names = spotsOf(data, 129).map((s) => s.name); // Magikarp
-    expect(names.length).toBeGreaterThan(5);
-    expect(spotsOf(data, 25).some((s) => s.name === 'Viridian Forest')).toBe(true); // Pikachu
-    expect(hasEncounters(data, 154)).toBe(false); // Meganium is never wild
+    const ids = Object.keys(data.pokemon).map(Number);
+    expect(ids.length).toBeGreaterThan(800);
+    expect(ids.every((id) => idsInDex.has(id))).toBe(true);
+    expect(ids.some((id) => POKEDEX.find((p) => p.id === id)!.generation === 9)).toBe(false);
   });
   it('has sane level ranges', () => {
-    for (const p of candidates.slice(0, 200))
-      for (const s of spotsOf(data, p.id)) {
-        expect(s.min).toBeGreaterThanOrEqual(1);
-        expect(s.max).toBeGreaterThanOrEqual(s.min);
-        expect(s.max).toBeLessThanOrEqual(100);
+    for (const list of Object.values(data.pokemon).slice(0, 300))
+      for (const [loc, min, max] of list) {
+        expect(data.locations[loc]).toBeDefined();
+        expect(min).toBeGreaterThanOrEqual(1);
+        expect(max).toBeGreaterThanOrEqual(min);
+        expect(max).toBeLessThanOrEqual(100);
       }
-  });
-});
-
-describe('buildClue', () => {
-  it('is deterministic for a seed', () => {
-    const p = byId.get(129)!;
-    expect(buildClue(data, p, 7, candidates)).toEqual(buildClue(data, p, 7, candidates));
-  });
-  it('lists at most MAX_SHOWN places and counts the rest', () => {
-    const p = byId.get(129)!;
-    const all = spotsOf(data, p.id).length;
-    const clue = buildClue(data, p, 1, candidates);
-    expect(clue.spots.length).toBe(Math.min(all, MAX_SHOWN));
-    expect(clue.spots.length + clue.more).toBe(all);
-    expect(new Set(clue.spots.map((s) => s.loc)).size).toBe(clue.spots.length);
-  });
-  it('always accepts its own target', () => {
-    for (const p of candidates) expect(fits(data, buildClue(data, p, 99, candidates), p), p.name).toBe(true);
-  });
-  it('rejects a Pokémon of another type or without the places', () => {
-    const p = byId.get(129)!; // Magikarp, water
-    const clue = buildClue(data, p, 5, candidates);
-    expect(fits(data, clue, byId.get(25)!)).toBe(false);
-    expect(fits(data, clue, byId.get(154)!)).toBe(false); // no encounters at all
-  });
-  it('adds extras exactly when another Pokémon fits the type and places', () => {
-    let withExtras = 0;
-    for (const p of candidates) {
-      const clue = buildClue(data, p, 12345, candidates);
-      const rivals = candidates.filter((c) => c.id !== p.id && fits(data, { ...clue, extras: null }, c));
-      expect(!!clue.extras, p.name).toBe(rivals.length > 0);
-      if (clue.extras) {
-        withExtras++;
-        expect(clue.extras.stage).toBe(p.evoStage);
-        expect(clue.extras.generation).toBe(p.generation);
-        expect(clue.extras.min).toBeLessThanOrEqual(clue.extras.max);
-      }
-    }
-    // The reason the extras exist: a noticeable share of clues is ambiguous.
-    expect(withExtras).toBeGreaterThan(candidates.length * 0.05);
-  });
-  it('extras narrow the accepted answers down', () => {
-    for (const p of candidates) {
-      const clue = buildClue(data, p, 12345, candidates);
-      if (!clue.extras) continue;
-      const base = candidates.filter((c) => fits(data, { ...clue, extras: null }, c)).length;
-      const withExtras = candidates.filter((c) => fits(data, clue, c)).length;
-      expect(withExtras).toBeLessThanOrEqual(base);
-      expect(withExtras).toBeLessThanOrEqual(5);
-    }
   });
 });
 
@@ -99,6 +44,7 @@ describe('maps', () => {
     const r = regionsOf(data);
     expect(r.slice(0, 3)).toEqual(['Kanto', 'Johto', 'Hoenn']);
     expect(r).not.toContain('Paldea');
+    expect(REGION_ORDER).toEqual(expect.arrayContaining(r));
   });
   it('only offers places with a guessable number of Pokémon', () => {
     for (const region of regionsOf(data)) {
@@ -108,15 +54,80 @@ describe('maps', () => {
         expect(m.count).toBeGreaterThanOrEqual(MAP_MIN);
         expect(m.count).toBeLessThanOrEqual(MAP_MAX);
         expect(membersOf(data, m.loc)).toHaveLength(m.count);
-        expect(data.locations[m.loc][1]).toBe(region);
+        expect(m.region).toBe(region);
       }
     }
+  });
+  it('mapsFor with no region is the union, sorted by id', () => {
+    const all = mapsFor(data);
+    const sum = regionsOf(data).reduce((n, r) => n + mapsFor(data, r).length, 0);
+    expect(all).toHaveLength(sum);
+    expect(all.map((m) => m.loc)).toEqual(all.map((m) => m.loc).sort((a, b) => a - b));
   });
   it('members of a place all list it, with levels', () => {
     const loc = mapsFor(data, 'Kanto')[0].loc;
     for (const id of membersOf(data, loc)) expect(levelsAt(data, id, loc)).not.toBeNull();
     expect(levelsAt(data, 129, -1)).toBeNull();
   });
+  it('knows Rock Tunnel', () => {
+    const rock = mapsFor(data, 'Kanto').find((m) => data.locations[m.loc][0] === 'Rock Tunnel')!;
+    expect(rock.count).toBe(18);
+    expect(membersOf(data, rock.loc)).toContain(41); // Zubat
+  });
+});
+
+describe('dailyMap', () => {
+  it('is the same place all day and never Orre', () => {
+    const d = new Date('2026-11-23T12:00:00');
+    expect(dailyMap(data, d)).toEqual(dailyMap(data, d));
+    for (let i = 0; i < 120; i++) {
+      const day = new Date(2026, 0, 1 + i, 12);
+      const m = dailyMap(data, day);
+      expect(m.region).not.toBe('Orre');
+      expect(m.count).toBeGreaterThanOrEqual(MAP_MIN);
+    }
+  });
+  it('changes from day to day and spreads over regions', () => {
+    const places = new Set<number>();
+    const regions = new Set<string>();
+    for (let i = 0; i < 120; i++) {
+      const m = dailyMap(data, new Date(2026, 0, 1 + i, 12));
+      places.add(m.loc);
+      regions.add(m.region);
+    }
+    expect(places.size).toBeGreaterThan(60);
+    expect(regions.size).toBeGreaterThanOrEqual(6);
+  });
+});
+
+describe('applyGuess', () => {
+  const map = newMapRound(1, 'Kanto', 2);
+  it('records a Pokémon that appears here, and finishes when all are found', () => {
+    const a = applyGuess(map, 25, true)!;
+    expect(a.found).toEqual([25]);
+    expect(a.status).toBe('playing');
+    const b = applyGuess(a, 16, true)!;
+    expect(b.status).toBe('done');
+  });
+  it('keeps wrong guesses without ending the map', () => {
+    const a = applyGuess(map, 151, false)!;
+    expect(a.wrong).toEqual([151]);
+    expect(a.status).toBe('playing');
+  });
+  it('ignores repeats and guesses after the end', () => {
+    const a = applyGuess(map, 25, true)!;
+    expect(applyGuess(a, 25, true)).toBeNull();
+    const w = applyGuess(map, 1, false)!;
+    expect(applyGuess(w, 1, false)).toBeNull();
+    expect(applyGuess({ ...map, status: 'gaveUp' }, 25, true)).toBeNull();
+  });
+  it('does not mutate the round it was given', () => {
+    applyGuess(map, 25, true);
+    expect(map.found).toEqual([]);
+  });
+});
+
+describe('pickMap', () => {
   it('picks unseen places first and never loops on the current one', () => {
     const maps = [{ loc: 1 }, { loc: 2 }, { loc: 3 }];
     const rand = mulberry32(3);
@@ -127,13 +138,12 @@ describe('maps', () => {
   });
 });
 
-describe('helpers', () => {
-  it('rebuilds the round seed from its key', () => {
-    expect(roundSeed({ mode: 'unlimited', key: '4242' })).toBe(4242);
-    expect(roundSeed({ mode: 'daily', key: todayKey() })).toBe(dailySeed('gps'));
+describe('shareRow', () => {
+  it('shows found, missing and wrong guesses', () => {
+    expect(shareRow({ ...newMapRound(1, 'Kanto', 4), found: [1, 2], wrong: [9] })).toBe('🟩🟩⬜⬜🟥');
   });
-  it('draws the share row', () => {
-    expect(guessRow(2, true)).toBe('🟥🟥🟩');
-    expect(guessRow(6, false)).toBe('🟥🟥🟥🟥🟥🟥');
+  it('caps the wrong guesses so the row stays short', () => {
+    const wrong = Array.from({ length: 40 }, (_, i) => i + 100);
+    expect(shareRow({ ...newMapRound(1, 'Kanto', 3), found: [1, 2, 3], wrong })).toBe('🟩🟩🟩' + '🟥'.repeat(10));
   });
 });

@@ -74,7 +74,6 @@ scripts/
   build-movesets.ts            → src/data/movesets.json  (npm run data:moves)
   build-locations.ts           → src/data/locations.json (npm run data:locations)
   build-items.ts               → src/data/items.json     (npm run data:items)
-  analyze-gps.ts               cuántas respuestas encajan con cada pista de PokeGPS (npx tsx)
 src/
   main.tsx, App.tsx            arranque y rutas (lazy por juego)
   index.css                    Tailwind + clases utilitarias (.pixelated, .tile)
@@ -94,7 +93,7 @@ src/
     puzzle/                    motor de Moveset, Hangman, Shiny Hunt, PokeGPS y PokeIndex (daily + ilimitado)
     moveset/ hangman/ shiny/ pokeindex/   pantallas de esos juegos
     items/                     Item Sprites (store propio: el objeto es un id de objeto, no de Pokémon)
-    gps/                       PokeGPS: acertijo (motor puzzle) + exploración de mapas (store propio)
+    gps/                       PokeGPS: lugares del mapa, del día + ilimitado por región (store propio)
   i18n/                        idioma (EN/ES): hook `useT`, store y diccionarios (`dict/`)
 public/favicon.svg
 BLUEPRINT.md, README.md, ARCHITECTURE.md, CLAUDE.md
@@ -152,7 +151,7 @@ carpeta fuerza una descarga nueva. Los JSON generados se commitean.
 | Cries | `#/cry` | `games/identify/` (kind `cry`) | `pokewwww-cry` | del día (3 intentos), contrarreloj |
 | Moveset | `#/moveset` | `games/moveset/` + `games/puzzle/` | `pokewwww-moveset` | del día, ilimitado |
 | Hangman | `#/hangman` | `games/hangman/` + `games/puzzle/` | `pokewwww-hangman` | del día, ilimitado |
-| PokeGPS | `#/gps`, `#/gps/map` | `games/gps/` + `games/puzzle/`, `lib/gps.ts` | `pokewwww-gps`, `pokewwww-gpsmap` | del día, ilimitado, explorar (región) |
+| PokeGPS | `#/gps` | `games/gps/`, `lib/gps.ts` | `pokewwww-gpsmap` | del día (un lugar para todos), ilimitado (región) |
 | PokeIndex | `#/pokeindex` | `games/pokeindex/` + `games/puzzle/`, `lib/pokeindex.ts` | `pokewwww-pokeindex` | del día, ilimitado (generaciones) |
 | Item Sprites | `#/item` | `games/items/`, `lib/items.ts` | `pokewwww-items` | del día, ilimitado (tipo de objeto) |
 | Shiny Hunt | `#/shiny` | `games/shiny/` + `games/puzzle/`, `lib/shiny.ts` | `pokewwww-shiny` | del día, ilimitado (generación del Pokémon) |
@@ -193,11 +192,12 @@ Cada juego aparece en tres sitios: `games/modes.ts` (menú y tarjeta), `App.tsx`
   sale de bolsillos y categorías conocidas (`dailyPool`); el ilimitado ofrece todo, incluidos objetos clave y cartas. Cada
   fallo desbloquea una pista (tipo, nº de letras, efecto sin el nombre, primera letra); 5 fallos. Los nombres se aceptan en
   inglés y español (los objetos sí tienen nombre en español en PokeAPI). El autocompletado no muestra sprites.
-- **PokeGPS (`games/gps/`)**: el acertijo reutiliza `createPuzzleStore` (`useGpsStore`, 6 fallos, entrada de la Pokédex tras
-  4). Como una pista puede encajar con varios Pokémon, `buildClue` añade etapa evolutiva, generación y rango de nivel solo
-  cuando otro Pokémon encaja con tipo + lugares, y `fits` acepta cualquiera que encaje con todo lo mostrado (la
-  pantalla manda el id del objetivo al store). El modo Explorar (`exploreStore`, `/gps/map`) elige una región y un lugar
-  con 3–25 Pokémon, que se adivinan con autocompletado; al terminar pasa a otro lugar sin repetir.
+- **PokeGPS (`games/gps/`)**: no usa `createPuzzleStore`; su store (`store.ts`, clave `pokewwww-gpsmap`) guarda el lugar del
+  día, sus estadísticas y el modo ilimitado. Un lugar (`MapRound`) tiene una casilla oculta por cada Pokémon que aparece
+  allí (con sus tipos como pista) y se completa nombrándolos con autocompletado; los fallos no penalizan. Del día: un lugar
+  de cualquier región menos Orre, elegido por semilla (`dailyMap`); se pierde solo al rendirse. Ilimitado: se elige región y
+  se encadenan lugares sin repetir hasta agotarlos. Solo cuentan lugares con 3–25 Pokémon (`mapsFor`). La lógica de
+  rondas es pura (`applyGuess`, `newMapRound`) y `MapBoard` es la pantalla compartida por los dos modos.
 - **`games/identify/`**: "identifica al Pokémon de una pista" con del día (3 intentos) y partida
   contrarreloj (regiones + 1/2/3/5 min, avance automático). `createIdentifyStore(kind)` y `Prompt`
   (tarjeta de silueta o reproductor de llanto). Para un tipo de pista nuevo: añadir un `kind`.
@@ -286,7 +286,7 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 
 **Hecho (noviembre de 2026)**
 - 12 juegos publicados, interfaz en inglés y español, página de contacto, inicio con estado del día por juego, compartir en todos.
-- 201 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
+- 205 tests (lógica, stores, generador del crucigrama, datos), CI con tests + build + deploy.
 - Auditoría de dependencias sin vulnerabilidades tras subir a Vite 7 / Vitest 4 / React Router 7.
 
 **Limitaciones conocidas**
@@ -296,9 +296,8 @@ workflow publica en ~1 minuto; comprobar con `gh run watch` y abrir la web en vi
 - Algunos niveles de Legends: Z-A parecen raros (p. ej. Volt Tackle a nivel 99); son los datos de PokeAPI.
 - Estadísticas solo locales: no hay cuentas ni rankings.
 - Item Sprites: sprites de 30 px ampliados sin suavizar; efectos y categorías en inglés; ~790 objetos tienen efecto.
-- PokeGPS: sin Pokémon de Gen 9 (ni Paldea) por falta de datos en PokeAPI; los nombres de lugares están en inglés. Con
-  tipo + lugares, ~15 % de las pistas las cumplen varios Pokémon (de ahí los datos extra); con ellos quedan como mucho 2
-  respuestas válidas.
+- PokeGPS: sin Pokémon de Gen 9 (ni Paldea) por falta de datos en PokeAPI; los nombres de lugares están en inglés. La
+  clave `pokewwww-gps` del antiguo acertijo por pistas ya no se usa (queda huérfana en los navegadores que la tengan).
 - Shiny Hunt: algunos shiny cambian muy poco de color frente al normal (difíciles de ver); no hay temporizador.
   La URL de la imagen shiny contiene `/shiny/` (visible en las herramientas del navegador).
 - Nombres, categorías, entradas de la Pokédex y movimientos siguen en inglés aunque la interfaz esté en español.

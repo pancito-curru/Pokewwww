@@ -12,7 +12,7 @@ A Pokémon trivia web app with eight game modes:
 | **Cries** | `#/cry` | Name a Pokémon from its cry: Pokémon of the day (3 tries) or a timed run by region |
 | **Moveset** | `#/moveset` | Name a Pokémon from the moves it learns; each miss reveals another move |
 | **Hangman** | `#/hangman` | Guess a Pokémon name letter by letter; 6 misses allowed |
-| **PokeGPS** | `#/gps` | Name a Pokémon from its type and the places it appears in the wild (daily/unlimited), or explore a map and name everyone who appears there |
+| **PokeGPS** | `#/gps` | A place on the map with a hidden slot for every Pokémon that appears there (shown by type): name them all. Daily = one place for everyone; unlimited = pick a region and play its places one after another |
 | **PokeIndex** | `#/pokeindex` | Name the Pokémon from its Pokédex number; misses unlock the generation, the types and finally the silhouette |
 | **Item Sprites** | `#/item` | Name an item from its pixel sprite (daily or unlimited by item type); each miss unlocks a hint; names work in English or Spanish |
 | **Shiny Hunt** | `#/shiny` | Spot the one shiny among 299 regular copies of the same Pokémon; 5 wrong picks allowed |
